@@ -17,6 +17,7 @@ public:
 
     
 
+
     // Getters
     bool getIsWhite() const;
     int getX() const;
