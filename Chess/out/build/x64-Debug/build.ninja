@@ -81,6 +81,14 @@ build CMakeFiles\Chess.dir\src\Pieces\Rook.cpp.obj: CXX_COMPILER__Chess_unscanne
   TARGET_COMPILE_PDB = CMakeFiles\Chess.dir\
   TARGET_PDB = Chess.pdb
 
+build CMakeFiles\Chess.dir\src\PieceFactory\PieceFactory.cpp.obj: CXX_COMPILER__Chess_unscanned_Debug C$:\Users\itay\source\repos\chess-ex1-itay19101973\Chess\src\PieceFactory\PieceFactory.cpp || cmake_object_order_depends_target_Chess
+  FLAGS = /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++latest -MDd /W4 /permissive- /Zc:externConstexpr /Zc:inline
+  INCLUDES = -IC:\Users\itay\source\repos\chess-ex1-itay19101973\Chess\include
+  OBJECT_DIR = CMakeFiles\Chess.dir
+  OBJECT_FILE_DIR = CMakeFiles\Chess.dir\src\PieceFactory
+  TARGET_COMPILE_PDB = CMakeFiles\Chess.dir\
+  TARGET_PDB = Chess.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Chess
@@ -89,7 +97,7 @@ build CMakeFiles\Chess.dir\src\Pieces\Rook.cpp.obj: CXX_COMPILER__Chess_unscanne
 #############################################
 # Link the executable Chess.exe
 
-build Chess.exe: CXX_EXECUTABLE_LINKER__Chess_Debug CMakeFiles\Chess.dir\src\main.cpp.obj CMakeFiles\Chess.dir\src\Chess.cpp.obj CMakeFiles\Chess.dir\src\Pieces\Piece.cpp.obj CMakeFiles\Chess.dir\src\Pieces\Rook.cpp.obj
+build Chess.exe: CXX_EXECUTABLE_LINKER__Chess_Debug CMakeFiles\Chess.dir\src\main.cpp.obj CMakeFiles\Chess.dir\src\Chess.cpp.obj CMakeFiles\Chess.dir\src\Pieces\Piece.cpp.obj CMakeFiles\Chess.dir\src\Pieces\Rook.cpp.obj CMakeFiles\Chess.dir\src\PieceFactory\PieceFactory.cpp.obj
   FLAGS = /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
   LINK_LIBRARIES = kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
