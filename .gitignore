@@ -26,3 +26,4 @@
 # Ignore temporary image cache
 img/cache/
 
+.vs
