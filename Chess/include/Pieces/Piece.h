@@ -8,7 +8,7 @@ class Piece {
 
 
 public:
-    Piece(bool isWhite, int x, int y) : isWhite(isWhite), x(x), y(y) {}
+    Piece(bool isWhite, int x, int y);
     virtual ~Piece() = default;
 
     // Check if a move is valid for this piece
@@ -18,17 +18,17 @@ public:
     virtual bool isPathClear(int destX, int destY, const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0;
 
     // Getters
-    bool getIsWhite() const { return isWhite; }
-    int getX() const { return x; }
-    int getY() const { return y; }
+    bool getIsWhite() const;
+    int getX() const;
+    int getY() const;
 
     // Setters
-    void setPosition(int newX, int newY) { x = newX; y = newY; }
+    void setPosition(int newX, int newY);
 
     // Get the character representation of the piece
     virtual char getSymbol() const = 0;
 
 private:
-    bool isWhite;
-    int x, y;
+    bool m_isWhite;
+    int m_x, m_y;
 };
