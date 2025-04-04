@@ -1,2 +1,2 @@
 ﻿target_sources (Chess PRIVATE "main.cpp"
-							  "Chess.cpp" "../include/Piece.h" "Piece.cpp")
+							  "Chess.cpp" "Pieces/Piece.cpp" "Pieces/Rook.cpp" )

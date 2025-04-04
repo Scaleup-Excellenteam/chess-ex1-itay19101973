@@ -15,8 +15,7 @@ public:
     virtual bool isValidMove(int destX, int destY, 
         const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0; 
 
-    virtual bool isPathClear(int destX, int destY, 
-        const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0;
+    
 
     // Getters
     bool getIsWhite() const;
@@ -29,6 +28,9 @@ public:
     virtual char getSymbol() const = 0;
 
 private:
+    virtual bool isPathClear(int destX, int destY,
+        const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0;
+
     bool m_isWhite;
     int m_x, m_y;
 };

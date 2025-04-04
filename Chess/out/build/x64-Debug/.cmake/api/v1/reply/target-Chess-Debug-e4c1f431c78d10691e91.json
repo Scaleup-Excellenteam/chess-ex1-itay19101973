@@ -106,6 +106,7 @@
 			[
 				0,
 				1,
+				2,
 				3
 			]
 		}
@@ -145,14 +146,8 @@
 			[
 				0,
 				1,
+				2,
 				3
-			]
-		},
-		{
-			"name" : "Header Files",
-			"sourceIndexes" : 
-			[
-				2
 			]
 		}
 	],
@@ -172,13 +167,14 @@
 		},
 		{
 			"backtrace" : 6,
-			"path" : "include/Piece.h",
-			"sourceGroupIndex" : 1
+			"compileGroupIndex" : 0,
+			"path" : "src/Pieces/Piece.cpp",
+			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 6,
 			"compileGroupIndex" : 0,
-			"path" : "src/Piece.cpp",
+			"path" : "src/Pieces/Rook.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],
