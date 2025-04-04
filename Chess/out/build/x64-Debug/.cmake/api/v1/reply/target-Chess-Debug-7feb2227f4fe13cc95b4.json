@@ -108,7 +108,8 @@
 				1,
 				2,
 				3,
-				6
+				6,
+				7
 			]
 		}
 	],
@@ -149,7 +150,8 @@
 				1,
 				2,
 				3,
-				6
+				6,
+				7
 			]
 		},
 		{
@@ -201,6 +203,12 @@
 			"backtrace" : 6,
 			"compileGroupIndex" : 0,
 			"path" : "src/PieceFactory/PieceFactory.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 6,
+			"compileGroupIndex" : 0,
+			"path" : "src/Pieces/King.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

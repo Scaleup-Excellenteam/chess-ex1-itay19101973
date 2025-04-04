@@ -9,7 +9,7 @@ bool Rook::isValidMove(int destX, int destY, const std::vector<std::vector<std::
 
 char Rook::getSymbol() const
 {
-    return this->getSymbol() ? 'R' : 'r';
+    return this->getIsWhite() ? 'R' : 'r';
 }
 
 // checking if the rook can move to the new location and there are no pieces blocking its path.
