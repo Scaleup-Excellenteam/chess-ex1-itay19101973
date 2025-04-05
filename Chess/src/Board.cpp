@@ -81,6 +81,7 @@ int Board::validateMove(const std::string& source, const std::string& dest) {
     
     bool selfCheck = this->isKingInCheck(isWhiteTurn);
     if (selfCheck) {
+        restoreBoardPos(piece, capturedPiece, srcRow, srcCol, destRow, destCol, isKingMoving);
         return 31;
     }
     bool causesCheck = isKingInCheck(!isWhiteTurn);
