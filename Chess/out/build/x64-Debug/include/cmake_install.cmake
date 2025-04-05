@@ -1,8 +1,8 @@
-# Install script for directory: C:/Users/itay/source/repos/chess-ex1-itay19101973/Chess/include
+# Install script for directory: C:/Users/golan/source/repos/chess-ex1-itay19101973/Chess/include
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Users/itay/Source/Repos/chess-ex1-itay19101973/Chess/out/install/x64-Debug")
+  set(CMAKE_INSTALL_PREFIX "C:/Users/golan/Source/Repos/chess-ex1-itay19101973/Chess/out/install/x64-Debug")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

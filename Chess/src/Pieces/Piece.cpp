@@ -1,20 +1,20 @@
 #include "Pieces/Piece.h"
 
-Piece::Piece(bool isWhite, int x, int y) : m_isWhite(isWhite), m_x(x), m_y(y) {}
+Piece::Piece(bool isWhite, int x, int y) : m_isWhite(isWhite), m_Row(x), m_Col(y) {}
 
 bool Piece::getIsWhite() const {
 	return this->m_isWhite;
 }
 
 int Piece::getRow() const {
-	return this->m_x;
+	return this->m_Row;
 }
 
 int Piece::getCol() const {
-	return this->m_y;
+	return this->m_Col;
 }
 
 void Piece::setPosition(int newX, int newY) {
-	this->m_x = newX;
-	this->m_y = newY;
+	this->m_Row = newX;
+	this->m_Col = newY;
 }

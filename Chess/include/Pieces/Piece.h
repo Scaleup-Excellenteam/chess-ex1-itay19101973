@@ -8,15 +8,15 @@ class Piece {
 
 
 public:
-    Piece(bool isWhite, int x, int y);
+    Piece(bool isWhite, int row, int col);
     virtual ~Piece() = default;
 
     
-    virtual bool isValidMove(int destX, int destY, 
+    virtual bool isValidMove(int destRow, int destCol, 
         const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0; 
 
     
-    virtual bool isPathClear(int destX, int destY,
+    virtual bool isPathClear(int destRow, int destCol,
         const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const = 0;
 
     // Getters
@@ -25,7 +25,7 @@ public:
     int getCol() const;
 
     // Setters
-    void setPosition(int newX, int newY);
+    void setPosition(int newRow, int newCol);
 
     virtual char getSymbol() const = 0;
 
@@ -33,5 +33,5 @@ private:
     
 
     bool m_isWhite;
-    int m_x, m_y;
+    int m_Row, m_Col;
 };

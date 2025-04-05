@@ -68,7 +68,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Chess::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Chess-Debug-0cf038480a46a851cd22.json",
+					"jsonFile" : "target-Chess-Debug-94822528a266723c29c1.json",
 					"name" : "Chess",
 					"projectIndex" : 0
 				}
@@ -78,12 +78,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/itay/source/repos/chess-ex1-itay19101973/Chess/out/build/x64-Debug",
-		"source" : "C:/Users/itay/source/repos/chess-ex1-itay19101973/Chess"
+		"build" : "C:/Users/golan/source/repos/chess-ex1-itay19101973/Chess/out/build/x64-Debug",
+		"source" : "C:/Users/golan/source/repos/chess-ex1-itay19101973/Chess"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 6
+		"minor" : 8
 	}
 }
