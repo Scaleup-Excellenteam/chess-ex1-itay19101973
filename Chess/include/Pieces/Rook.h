@@ -12,9 +12,10 @@ public:
 
     char getSymbol() const override; 
 
+    bool isPathClear(int destX, int destY,
+        const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override;
 
 private:
-    bool isPathClear(int destX, int destY, 
-        const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override;
+    
 
 };

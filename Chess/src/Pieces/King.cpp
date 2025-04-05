@@ -4,8 +4,8 @@ bool King::isValidMove(int destX, int destY,
 	const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const{
 	
     // King can move one square in any direction
-    int dx = std::abs(destX - this->getX());
-    int dy = std::abs(destY - this->getY());
+    int dx = std::abs(destX - this->getRow());
+    int dy = std::abs(destY - this->getCol());
 
     return (dx <= 1 && dy <= 1) && !(dx == 0 && dy == 0);
 }

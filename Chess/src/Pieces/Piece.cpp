@@ -6,11 +6,11 @@ bool Piece::getIsWhite() const {
 	return this->m_isWhite;
 }
 
-int Piece::getX() const {
+int Piece::getRow() const {
 	return this->m_x;
 }
 
-int Piece::getY() const {
+int Piece::getCol() const {
 	return this->m_y;
 }
 
