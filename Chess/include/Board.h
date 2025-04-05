@@ -66,61 +66,6 @@ public:
         return false;
     }
 
-    // Check if a move would cause the player's king to be in check
-    bool wouldCauseCheck(int srcX, int srcY, int destX, int destY) {
-        std::shared_ptr<Piece> piece = board[srcX][srcY];
-        std::shared_ptr<Piece> capturedPiece = board[destX][destY];
-
-        // Make the move temporarily
-        board[destX][destY] = piece;
-        board[srcX][srcY] = nullptr;
-
-        // Update piece position
-        int oldX = piece->getRow();
-        int oldY = piece->getCol();
-        piece->setPosition(destX, destY);
-
-        // Update king position if the king is moving
-        bool isKingMoving = std::dynamic_pointer_cast<King>(piece) != nullptr;
-        int oldKingX = -1, oldKingY = -1;
-        if (isKingMoving) {
-            if (piece->getIsWhite()) {
-                oldKingX = whiteKingRow;
-                oldKingY = whiteKingCol;
-                whiteKingRow = destX;
-                whiteKingCol = destY;
-            }
-            else {
-                oldKingX = blackKingRow;
-                oldKingY = blackKingCol;
-                blackKingRow = destX;
-                blackKingCol = destY;
-            }
-        }
-
-        // Check if king is in check after the move
-        bool kingInCheck = isKingInCheck(isWhiteTurn);
-
-        // Restore the board
-        board[srcX][srcY] = piece;
-        board[destX][destY] = capturedPiece;
-        piece->setPosition(oldX, oldY);
-
-        // Restore king position if it was moved
-        if (isKingMoving) {
-            if (piece->getIsWhite()) {
-                whiteKingRow = oldKingX;
-                whiteKingCol = oldKingY;
-            }
-            else {
-                blackKingRow = oldKingX;
-                blackKingCol = oldKingY;
-            }
-        }
-
-        return kingInCheck;
-    }
-
     // Get current turn
     bool getIsWhiteTurn() const {
         return isWhiteTurn;
