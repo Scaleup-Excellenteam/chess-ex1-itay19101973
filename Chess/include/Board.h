@@ -34,12 +34,12 @@ public:
         // Update king position if the king is moving
         if (std::dynamic_pointer_cast<King>(piece)) {
             if (piece->getIsWhite()) {
-                whiteKingX = destRow;
-                whiteKingY = destCol;
+                whiteKingRow = destRow;
+                whiteKingCol = destCol;
             }
             else {
-                blackKingX = destRow;
-                blackKingY = destCol;
+                blackKingRow = destRow;
+                blackKingCol = destCol;
             }
         }
 
@@ -49,16 +49,16 @@ public:
 
     // Check if king of specified color is in check
     bool isKingInCheck(bool isWhiteKing) {
-        int kingX = isWhiteKing ? whiteKingX : blackKingX;
-        int kingY = isWhiteKing ? whiteKingY : blackKingY;
+        int kingRow = isWhiteKing ? whiteKingRow : blackKingRow;
+        int kingCol = isWhiteKing ? whiteKingCol : blackKingCol;
 
         // Check if any opponent piece can attack the king
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                std::shared_ptr<Piece> piece = board[x][y];
+        for (int col = 0; col < 8; col++) {
+            for (int row = 0; row < 8; row++) {
+                std::shared_ptr<Piece> piece = board[row][col];
                 if (piece && piece->getIsWhite() != isWhiteKing &&
-                    piece->isValidMove(kingX, kingY, board) &&
-                    piece->isPathClear(kingX, kingY, board)) {
+                    piece->isValidMove(kingRow, kingCol, board) &&
+                    piece->isPathClear(kingRow, kingCol, board)) {
                     return true;
                 }
             }
@@ -85,16 +85,16 @@ public:
         int oldKingX = -1, oldKingY = -1;
         if (isKingMoving) {
             if (piece->getIsWhite()) {
-                oldKingX = whiteKingX;
-                oldKingY = whiteKingY;
-                whiteKingX = destX;
-                whiteKingY = destY;
+                oldKingX = whiteKingRow;
+                oldKingY = whiteKingCol;
+                whiteKingRow = destX;
+                whiteKingCol = destY;
             }
             else {
-                oldKingX = blackKingX;
-                oldKingY = blackKingY;
-                blackKingX = destX;
-                blackKingY = destY;
+                oldKingX = blackKingRow;
+                oldKingY = blackKingCol;
+                blackKingRow = destX;
+                blackKingCol = destY;
             }
         }
 
@@ -109,12 +109,12 @@ public:
         // Restore king position if it was moved
         if (isKingMoving) {
             if (piece->getIsWhite()) {
-                whiteKingX = oldKingX;
-                whiteKingY = oldKingY;
+                whiteKingRow = oldKingX;
+                whiteKingCol = oldKingY;
             }
             else {
-                blackKingX = oldKingX;
-                blackKingY = oldKingY;
+                blackKingRow = oldKingX;
+                blackKingCol = oldKingY;
             }
         }
 
@@ -129,8 +129,8 @@ public:
 private:
     std::vector<std::vector<std::shared_ptr<Piece>>> board;
     bool isWhiteTurn;
-    int whiteKingX, whiteKingY;
-    int blackKingX, blackKingY;
+    int whiteKingRow, whiteKingCol;
+    int blackKingRow, blackKingCol;
 
     int validateBasicRules(int srcX, int srcY, int  destX, int destY) const;
     int validatePieceMovement(int srcX, int srcY, int destX, int destY)const;

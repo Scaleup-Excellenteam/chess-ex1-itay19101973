@@ -18,12 +18,12 @@ Board::Board(const std::string& initialBoard)
 
                 // Track kings' positions
                 if (symbol == 'K') {
-                    whiteKingX = x;
-                    whiteKingY = y;
+                    whiteKingRow = x;
+                    whiteKingCol = y;
                 }
                 else if (symbol == 'k') {
-                    blackKingX = x;
-                    blackKingY = y;
+                    blackKingRow = x;
+                    blackKingCol = y;
                 }
             }
         }
@@ -148,16 +148,16 @@ bool Board::isKingMoving(std::shared_ptr<Piece> piece) const{
 void Board::updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow, int& oldKingCol ,const int& destRow , const int& destCol) {
 
     if (piece->getIsWhite()) {
-        oldKingRow = whiteKingX;
-        oldKingCol = whiteKingY;
-        whiteKingX = destRow;
-        whiteKingY = destCol;
+        oldKingRow = whiteKingRow;
+        oldKingCol = whiteKingCol;
+        whiteKingRow = destRow;
+        whiteKingCol = destCol;
     }
     else {
-        oldKingRow = blackKingX;
-        oldKingCol = blackKingY;
-        blackKingX = destRow;
-        blackKingY = destCol;
+        oldKingRow = blackKingRow;
+        oldKingCol = blackKingCol;
+        blackKingRow = destRow;
+        blackKingCol = destCol;
     }
 
 }
@@ -171,12 +171,12 @@ void Board::restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece>
     // Restore king position if it was moved
     if (isKingMoving) {
         if (piece->getIsWhite()) {
-            this->whiteKingX = srcRow;
-            this->whiteKingY = srcCol;
+            this->whiteKingRow = srcRow;
+            this->whiteKingCol = srcCol;
         }
         else {
-            this->blackKingX = srcRow;
-            this->blackKingY = srcCol;
+            this->blackKingRow = srcRow;
+            this->blackKingCol = srcCol;
         }
     }
 }
