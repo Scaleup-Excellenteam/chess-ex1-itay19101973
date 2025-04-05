@@ -21,25 +21,25 @@ public:
 
     // Make a move on the board
     void makeMove(const std::string& source, const std::string& dest) {
-        auto [srcX, srcY] = notationToCoordinates(source);
-        auto [destX, destY] = notationToCoordinates(dest);
+        auto [srcRow, srcCol] = notationToCoordinates(source);
+        auto [destRow, destCol] = notationToCoordinates(dest);
 
-        std::shared_ptr<Piece> piece = board[srcX][srcY];
-        board[destX][destY] = piece;
-        board[srcX][srcY] = nullptr;
+        std::shared_ptr<Piece> piece = board[srcRow][srcCol];
+        board[destRow][destCol] = piece;
+        board[srcRow][srcCol] = nullptr;
 
         // Update piece position
-        piece->setPosition(destX, destY);
+        piece->setPosition(destRow, destCol);
 
         // Update king position if the king is moving
         if (std::dynamic_pointer_cast<King>(piece)) {
             if (piece->getIsWhite()) {
-                whiteKingX = destX;
-                whiteKingY = destY;
+                whiteKingX = destRow;
+                whiteKingY = destCol;
             }
             else {
-                blackKingX = destX;
-                blackKingY = destY;
+                blackKingX = destRow;
+                blackKingY = destCol;
             }
         }
 
