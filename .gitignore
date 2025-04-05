@@ -28,4 +28,4 @@ img/cache/
 
 .vs
 .CMakeF/**
-
+**/out/**
