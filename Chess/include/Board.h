@@ -77,12 +77,12 @@ private:
     int whiteKingRow, whiteKingCol;
     int blackKingRow, blackKingCol;
 
-    int validateBasicRules(int srcX, int srcY, int  destX, int destY) const;
-    int validatePieceMovement(int srcX, int srcY, int destX, int destY)const;
+    int validateBasicRules(int srcRow, int srcCol, int  destRow, int destCol) const;
+    int validatePieceMovement(int srcRow, int srcCol, int destRow, int destCol)const;
     bool isKingMoving(std::shared_ptr<Piece> piece)const;
-    void updateKingPos(std::shared_ptr<Piece> piece, int& oldKingX, int& oldKingY, const int& destX, const int& destY);
+    void updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow, int& oldKingCol, const int& destRow, const int& destCol);
     void restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> capturedPiece,
-        int srcX, int srcY, int destX, int destY, bool isKingMoving);
+        int srcRow, int srcCol, int destRow, int destCol, bool isKingMoving);
 };
 
 
