@@ -5,4 +5,4 @@
 							  "../include/PieceFactory/PieceFactory.h" 
 							  "PieceFactory/PieceFactory.cpp" 
 							  "Pieces/King.cpp"
-							  "Board.cpp")
+							  "Board.cpp" "Pieces/Bishop.cpp")
