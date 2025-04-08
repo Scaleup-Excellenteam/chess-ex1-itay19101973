@@ -6,6 +6,7 @@
 #include "Pieces/Rook.h"
 #include "Pieces/King.h"
 #include "Pieces/Bishop.h"
+#include "Pieces/Queen.h"
 
 class PieceFactory {
 public:
