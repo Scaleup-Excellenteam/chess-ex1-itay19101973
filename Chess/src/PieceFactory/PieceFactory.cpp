@@ -18,7 +18,7 @@ bool PieceFactory::registerPiece(char symbol, Creator creator) {
 }
 
 
-// create the piece
+// create the  piece
 std::shared_ptr<Piece> PieceFactory::createPiece(char symbol, int x, int y) {
     bool isWhite = std::isupper(symbol);
     char upperSymbol = std::toupper(symbol);
