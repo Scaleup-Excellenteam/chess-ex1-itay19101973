@@ -34,3 +34,9 @@ bool Rook::isPathClear(int destRow, int destCol, const std::vector<std::vector<s
 
     return true;
 }
+
+
+// register to the factory
+bool Rook::isRegistered = PieceFactory::registerPiece('R', [](bool isWhite, int x, int y) {
+    return std::make_shared<Rook>(isWhite, x, y);
+    });

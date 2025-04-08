@@ -46,3 +46,8 @@ bool Bishop::isPathClear(int destRow, int destCol, const std::vector<std::vector
 
     return true; // move is ok
 }
+
+// register bishop to the factory
+bool Bishop::isRegistered = PieceFactory::registerPiece('B', [](bool isWhite, int x, int y) {
+    return std::make_shared<Bishop>(isWhite, x, y);
+    });

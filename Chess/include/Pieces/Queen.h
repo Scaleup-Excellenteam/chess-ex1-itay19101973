@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <cmath>
+#include "PieceFactory/PieceFactory.h"
 
 class Queen : public Piece {
 public:
@@ -11,4 +12,6 @@ public:
     bool isValidMove(int destRow, int destCol, const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override;
     bool isPathClear(int destRow, int destCol, const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override;
     char getSymbol() const override;
+private:
+    static bool isRegistered;
 };

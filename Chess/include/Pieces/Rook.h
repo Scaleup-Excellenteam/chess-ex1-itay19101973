@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include "PieceFactory/PieceFactory.h"
 #include "Piece.h"
 #include <cmath>
 
@@ -17,5 +19,5 @@ public:
 
 private:
     
-
+    static bool isRegistered;
 };

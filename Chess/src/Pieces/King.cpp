@@ -21,3 +21,9 @@ bool King::isPathClear(int destX, int destY,
 char King::getSymbol() const{
     return this->getIsWhite() ? 'K' : 'k';
 }
+
+
+// register the king to the factory
+bool King::isRegistered = PieceFactory::registerPiece('K', [](bool isWhite, int x, int y) {
+    return std::make_shared<King>(isWhite, x, y);
+    });

@@ -2,6 +2,7 @@
 
 #include "Piece.h"
 #include <cmath>
+#include "PieceFactory/PieceFactory.h"
 
 class King : public Piece {
 public:
@@ -15,4 +16,6 @@ public:
         const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override; 
 
     char getSymbol() const override;
+private:
+    static bool isRegistered;
 };

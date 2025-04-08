@@ -1,19 +1,34 @@
 #include "PieceFactory/PieceFactory.h"
 
-std::shared_ptr<Piece> PieceFactory::createPiece(char symbol, int x, int y) {
+std::map<char, PieceFactory::Creator>& PieceFactory::getCreators() {
+    static std::map<char, Creator> creators; // static pieces map factory
+    return creators;
+}
 
+
+// adding a piece to the factory
+bool PieceFactory::registerPiece(char symbol, Creator creator) {
+    char upperSymbol = std::toupper(symbol);
+    auto& creators = getCreators();
+    if (creators.find(upperSymbol) != creators.end()) {
+        return false;
+    }
+    creators[upperSymbol] = creator;
+    return true;
+}
+
+
+// create the piece
+std::shared_ptr<Piece> PieceFactory::createPiece(char symbol, int x, int y) {
     bool isWhite = std::isupper(symbol);
     char upperSymbol = std::toupper(symbol);
 
-    switch (upperSymbol) {
-    case 'R': return std::make_shared<Rook>(isWhite, x, y);
-    //case 'N': return std::make_shared<Knight>(isWhite, x, y);
-    case 'B': return std::make_shared<Bishop>(isWhite, x, y);
-    case 'K': return std::make_shared<King>(isWhite, x, y);
-    case 'Q': return std::make_shared<Queen>(isWhite, x, y);
-    //case 'P': return std::make_shared<Pawn>(isWhite, x, y);
-    default: return nullptr; // Empty square
+    auto& creators = getCreators();
+    auto it = creators.find(upperSymbol);
+    if (it != creators.end()) {
+        return it->second(isWhite, x, y);
     }
+    return nullptr;
 }
 
 

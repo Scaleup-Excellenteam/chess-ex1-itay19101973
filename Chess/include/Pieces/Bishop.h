@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "PieceFactory/PieceFactory.h"
 #include "Piece.h"
 #include <memory>
 #include <vector>
@@ -15,4 +15,6 @@ public:
     bool isPathClear(int destRow, int destCol,
         const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const override;
     char getSymbol() const override;
+private:
+    static bool isRegistered;
 };

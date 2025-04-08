@@ -69,3 +69,8 @@ bool Queen::isPathClear(int destRow, int destCol, const std::vector<std::vector<
 
     return true;
 }
+
+// register the queen to the factory
+bool Queen::isRegistered = PieceFactory::registerPiece('Q', [](bool isWhite, int x, int y) {
+    return std::make_shared<Queen>(isWhite, x, y);
+    });
