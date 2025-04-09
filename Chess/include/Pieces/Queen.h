@@ -6,6 +6,12 @@
 #include <cmath>
 #include "PieceFactory/PieceFactory.h"
 
+/**
+ * @class Queen
+ * Represents a Queen piece in a chess game.
+ */
+
+
 class Queen : public Piece {
 public:
     Queen(bool isWhite, int row, int col);
