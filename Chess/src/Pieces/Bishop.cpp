@@ -1,8 +1,8 @@
 #include "Pieces/Bishop.h"
 
-
+//c-tor
 Bishop::Bishop(bool isWhite, int row, int col) : Piece(isWhite, row, col) {}
-
+//================================================================================
 // checks if the move is valid
 bool Bishop::isValidMove(int destRow, int destCol, const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const {
     // Bishop can only move diagonally
@@ -12,15 +12,13 @@ bool Bishop::isValidMove(int destRow, int destCol, const std::vector<std::vector
     // For diagonal movement, the absolute difference in row and column must be equal
     return (dRow == dCol) && (dRow > 0) && isPathClear(destRow, destCol, board);
 }
-
-
-
+//================================================================================
 //returns the symbol of the bishop
 char Bishop::getSymbol() const {
     return this->getIsWhite() ? 'B' : 'b';
 }
 
-
+//================================================================================
 // checks that there are no pieces blocking the bishop from moving
 bool Bishop::isPathClear(int destRow, int destCol, const std::vector<std::vector<std::shared_ptr<Piece>>>& board) const {
 
@@ -46,8 +44,9 @@ bool Bishop::isPathClear(int destRow, int destCol, const std::vector<std::vector
 
     return true; // move is ok
 }
-
+//================================================================================
 // register bishop to the factory
-bool Bishop::isRegistered = PieceFactory::registerPiece('B', [](bool isWhite, int x, int y) {
+bool Bishop::m_isRegistered = PieceFactory::registerPiece('B', [](bool isWhite, int x, int y) {
     return std::make_shared<Bishop>(isWhite, x, y);
-    });
+
+});
