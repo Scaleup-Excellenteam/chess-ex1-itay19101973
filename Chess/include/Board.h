@@ -7,7 +7,12 @@
 #include "PieceFactory/PieceFactory.h"
 #include "Pieces/King.h"
 
-
+/*
+* class Board
+* =====================
+* This class manages the chessboard, piece positions, turn tracking,
+* move validation , move execution, and king check detection.
+*/
 class Board {
 
 public:
@@ -27,7 +32,8 @@ private:
     int validateBasicRules(int srcRow, int srcCol, int  destRow, int destCol) const;
     int validatePieceMovement(int srcRow, int srcCol, int destRow, int destCol)const;
     bool isKingMoving(std::shared_ptr<Piece> piece)const;
-    void updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow, int& oldKingCol, const int& destRow, const int& destCol);
+    void updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow,
+        int& oldKingCol, const int& destRow, const int& destCol);
     void restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> capturedPiece,
         int srcRow, int srcCol, int destRow, int destCol, bool isKingMoving);
 };
