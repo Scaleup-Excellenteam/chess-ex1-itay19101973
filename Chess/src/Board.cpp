@@ -10,20 +10,20 @@ Board::Board(const std::string& initialBoard)
 
     // Initialize the board using the factory
     int index = 0;
-    for (int x = 0; x < 8; x++) {
-        for (int y = 0; y < 8; y++) {
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
             char symbol = initialBoard[index++]; // moving on the string
             if (symbol != '#') {
-                board[x][y] = PieceFactory::createPiece(symbol, x, y);
+                board[row][col] = PieceFactory::createPiece(symbol, row, col);
 
                 // Track kings' positions
                 if (symbol == 'K') {
-                    whiteKingRow = x;
-                    whiteKingCol = y;
+                    whiteKingRow = row;
+                    whiteKingCol = col;
                 }
                 else if (symbol == 'k') {
-                    blackKingRow = x;
-                    blackKingCol = y;
+                    blackKingRow = row;
+                    blackKingCol = col;
                 }
             }
         }
