@@ -2,7 +2,7 @@
 
 
 //builds the tools board matrics
-Board::Board(const std::string& initialBoard)
+Board::Board(const std::string& initialBoard) 
 {
     // Initialize an 8x8 board
     board.resize(8, std::vector<std::shared_ptr<Piece>>(8, nullptr));
