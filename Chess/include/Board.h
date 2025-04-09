@@ -17,17 +17,17 @@ class Board {
 
 public:
     Board(const std::string& initialBoard);
-    std::pair<int, int> notationToCoordinates(std::string notation); 
+    
     int validateMove(const std::string& source, const std::string& dest);
     void makeMove(const std::string& source, const std::string& dest); 
-    bool isKingInCheck(bool isWhiteKing); 
-    bool getIsWhiteTurn() const; 
+     
+     
 
 private:
-    std::vector<std::vector<std::shared_ptr<Piece>>> board;
-    bool isWhiteTurn;
-    int whiteKingRow, whiteKingCol;
-    int blackKingRow, blackKingCol;
+    std::vector<std::vector<std::shared_ptr<Piece>>> m_board;
+    bool m_isWhiteTurn;
+    int m_whiteKingRow, m_whiteKingCol;
+    int m_blackKingRow, m_blackKingCol;
 
     int validateBasicRules(int srcRow, int srcCol, int  destRow, int destCol) const;
     int validatePieceMovement(int srcRow, int srcCol, int destRow, int destCol)const;
@@ -36,6 +36,9 @@ private:
         int& oldKingCol, const int& destRow, const int& destCol);
     void restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> capturedPiece,
         int srcRow, int srcCol, int destRow, int destCol, bool isKingMoving);
+    std::pair<int, int> notationToCoordinates(std::string notation);
+    bool isKingInCheck(bool isWhiteKing);
+    bool getIsWhiteTurn() const;
 };
 
 

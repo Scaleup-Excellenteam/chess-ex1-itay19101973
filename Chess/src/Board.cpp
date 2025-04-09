@@ -5,8 +5,8 @@
 Board::Board(const std::string& initialBoard) 
 {
     // Initialize an 8x8 board
-    board.resize(8, std::vector<std::shared_ptr<Piece>>(8, nullptr));
-    isWhiteTurn = true;
+    m_board.resize(8, std::vector<std::shared_ptr<Piece>>(8, nullptr));
+    m_isWhiteTurn = true;
 
     // Initialize the board using the factory
     int index = 0;
@@ -14,16 +14,16 @@ Board::Board(const std::string& initialBoard)
         for (int col = 0; col < 8; col++) {
             char symbol = initialBoard[index++]; // moving on the string
             if (symbol != '#') {
-                board[row][col] = PieceFactory::createPiece(symbol, row, col);
+                m_board[row][col] = PieceFactory::createPiece(symbol, row, col);
 
                 // Track kings' positions
                 if (symbol == 'K') {
-                    whiteKingRow = row;
-                    whiteKingCol = col;
+                    m_whiteKingRow = row;
+                    m_whiteKingCol = col;
                 }
                 else if (symbol == 'k') {
-                    blackKingRow = row;
-                    blackKingCol = col;
+                    m_blackKingRow = row;
+                    m_blackKingCol = col;
                 }
             }
         }
@@ -64,11 +64,11 @@ int Board::validateMove(const std::string& source, const std::string& dest) {
         return valid;
     }
 
-    std::shared_ptr<Piece> piece = board[srcRow][srcCol];
+    std::shared_ptr<Piece> piece = m_board[srcRow][srcCol];
     // Execute the move temporarily
-    std::shared_ptr<Piece> capturedPiece = this->board[destRow][destCol];
-    this->board[destRow][destCol] = piece;
-    this->board[srcRow][srcCol] = nullptr;
+    std::shared_ptr<Piece> capturedPiece = this->m_board[destRow][destCol];
+    this->m_board[destRow][destCol] = piece;
+    this->m_board[srcRow][srcCol] = nullptr;
 
     // Update piece position
     int oldRow = piece->getRow();
@@ -83,12 +83,12 @@ int Board::validateMove(const std::string& source, const std::string& dest) {
     }
 
     
-    bool selfCheck = this->isKingInCheck(isWhiteTurn);
+    bool selfCheck = this->isKingInCheck(m_isWhiteTurn);
     if (selfCheck) {
         restoreBoardPos(piece, capturedPiece, srcRow, srcCol, destRow, destCol, isKingMoving);
         return 31;
     }
-    bool causesCheck = isKingInCheck(!isWhiteTurn);
+    bool causesCheck = isKingInCheck(!m_isWhiteTurn);
 
     // Restore the board and piece position
     restoreBoardPos(piece, capturedPiece, srcRow, srcCol, destRow, destCol, isKingMoving);    
@@ -102,9 +102,9 @@ void Board::makeMove(const std::string& source, const std::string& dest)
     auto [srcRow, srcCol] = notationToCoordinates(source);
     auto [destRow, destCol] = notationToCoordinates(dest);
 
-    std::shared_ptr<Piece> piece = board[srcRow][srcCol];
-    board[destRow][destCol] = piece;
-    board[srcRow][srcCol] = nullptr;
+    std::shared_ptr<Piece> piece = m_board[srcRow][srcCol];
+    m_board[destRow][destCol] = piece;
+    m_board[srcRow][srcCol] = nullptr;
 
     // Update piece position
     piece->setPosition(destRow, destCol);
@@ -112,32 +112,32 @@ void Board::makeMove(const std::string& source, const std::string& dest)
     // Update king position if the king is moving
     if (std::dynamic_pointer_cast<King>(piece)) {
         if (piece->getIsWhite()) {
-            whiteKingRow = destRow;
-            whiteKingCol = destCol;
+            m_whiteKingRow = destRow;
+            m_whiteKingCol = destCol;
         }
         else {
-            blackKingRow = destRow;
-            blackKingCol = destCol;
+            m_blackKingRow = destRow;
+            m_blackKingCol = destCol;
         }
     }
 
     // Switch turn
-    isWhiteTurn = !isWhiteTurn;
+    m_isWhiteTurn = !m_isWhiteTurn;
 }
 //=================================================================================================
 // function check if the given king is in check
 bool Board::isKingInCheck(bool isWhiteKing)
 {
-    int kingRow = isWhiteKing ? whiteKingRow : blackKingRow;
-    int kingCol = isWhiteKing ? whiteKingCol : blackKingCol;
+    int kingRow = isWhiteKing ? m_whiteKingRow : m_blackKingRow;
+    int kingCol = isWhiteKing ? m_whiteKingCol : m_blackKingCol;
 
     // Check if any opponent piece can attack the king
     for (int col = 0; col < 8; col++) {
         for (int row = 0; row < 8; row++) {
-            std::shared_ptr<Piece> piece = board[row][col];
+            std::shared_ptr<Piece> piece = m_board[row][col];
             if (piece && piece->getIsWhite() != isWhiteKing &&
-                piece->isValidMove(kingRow, kingCol, board) &&
-                piece->isPathClear(kingRow, kingCol, board)) {
+                piece->isValidMove(kingRow, kingCol, m_board) &&
+                piece->isPathClear(kingRow, kingCol, m_board)) {
                 return true;
             }
         }
@@ -148,7 +148,7 @@ bool Board::isKingInCheck(bool isWhiteKing)
 // function returns true if its whight turn
 bool Board::getIsWhiteTurn() const
 {
-    return isWhiteTurn;
+    return m_isWhiteTurn;
 }
 
 
@@ -156,7 +156,7 @@ bool Board::getIsWhiteTurn() const
 // this function validates that the basic rule games are applied
 int Board::validateBasicRules(int srcRow, int srcCol, int destRow, int destCol) const
 {
-    std::shared_ptr<Piece> piece = board[srcRow][srcCol];
+    std::shared_ptr<Piece> piece = m_board[srcRow][srcCol];
 
     // Check that there is a piece at the source
     if (piece == nullptr) {
@@ -164,12 +164,12 @@ int Board::validateBasicRules(int srcRow, int srcCol, int destRow, int destCol) 
     }
 
     // Check if the piece belongs to the current player
-    if (piece->getIsWhite() != isWhiteTurn) {
+    if (piece->getIsWhite() != m_isWhiteTurn) {
         return 12; // Piece belongs to opponent
     }
 
     // Check if destination has a piece of the same color
-    if (board[destRow][destCol] != nullptr && board[destRow][destCol]->getIsWhite() == isWhiteTurn) {
+    if (m_board[destRow][destCol] != nullptr && m_board[destRow][destCol]->getIsWhite() == m_isWhiteTurn) {
         return 13; // Destination has a piece of the same color
     }
 
@@ -180,10 +180,10 @@ int Board::validateBasicRules(int srcRow, int srcCol, int destRow, int destCol) 
 // this function checks  if the piece can move correctly, for example
 // bishop can only move diagonly
 int Board::validatePieceMovement(int srcRow, int srcCol, int destRow, int destCol) const {
-    std::shared_ptr<Piece> piece = board[srcRow][srcCol];
+    std::shared_ptr<Piece> piece = m_board[srcRow][srcCol];
 
     // Check if the move is valid for this piece
-    if (!piece->isValidMove(destRow, destCol, board) || !piece->isPathClear(destRow, destCol, board)) {
+    if (!piece->isValidMove(destRow, destCol, m_board) || !piece->isPathClear(destRow, destCol, m_board)) {
         return 21; // Invalid movement for this piece
     }
 
@@ -205,16 +205,16 @@ bool Board::isKingMoving(std::shared_ptr<Piece> piece) const{
 void Board::updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow, int& oldKingCol ,const int& destRow , const int& destCol) {
 
     if (piece->getIsWhite()) {
-        oldKingRow = whiteKingRow;
-        oldKingCol = whiteKingCol;
-        whiteKingRow = destRow;
-        whiteKingCol = destCol;
+        oldKingRow = m_whiteKingRow;
+        oldKingCol = m_whiteKingCol;
+        m_whiteKingRow = destRow;
+        m_whiteKingCol = destCol;
     }
     else {
-        oldKingRow = blackKingRow;
-        oldKingCol = blackKingCol;
-        blackKingRow = destRow;
-        blackKingCol = destCol;
+        oldKingRow = m_blackKingRow;
+        oldKingCol = m_blackKingCol;
+        m_blackKingRow = destRow;
+        m_blackKingCol = destCol;
     }
 
 }
@@ -222,19 +222,19 @@ void Board::updateKingPos(std::shared_ptr<Piece> piece, int& oldKingRow, int& ol
 // after temporarly executing the move to check validation restoring the board position back.
 void Board::restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> capturedPiece,
     int srcRow, int srcCol, int destRow, int destCol, bool isKingMoving) {
-    this->board[srcRow][srcCol] = piece;
-    board[destRow][destCol] = capturedPiece;
+    this->m_board[srcRow][srcCol] = piece;
+    m_board[destRow][destCol] = capturedPiece;
     piece->setPosition(srcRow, srcCol);
 
     // Restore king position if it was moved
     if (isKingMoving) {
         if (piece->getIsWhite()) {
-            this->whiteKingRow = srcRow;
-            this->whiteKingCol = srcCol;
+            this->m_whiteKingRow = srcRow;
+            this->m_whiteKingCol = srcCol;
         }
         else {
-            this->blackKingRow = srcRow;
-            this->blackKingCol = srcCol;
+            this->m_blackKingRow = srcRow;
+            this->m_blackKingCol = srcCol;
         }
     }
 }
