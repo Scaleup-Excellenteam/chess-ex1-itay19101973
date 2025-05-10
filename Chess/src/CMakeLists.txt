@@ -5,4 +5,4 @@
 							  "../include/PieceFactory/PieceFactory.h" 
 							  "PieceFactory/PieceFactory.cpp" 
 							  "Pieces/King.cpp"
-							  "Board.cpp" "Pieces/Bishop.cpp" "../include/Pieces/Queen.h" "Pieces/Queen.cpp" "../include/Pieces/Pawn.h" "Pieces/Pawn.cpp" "../include/Pieces/Knight.h" "Pieces/Knight.cpp")
+							  "Board.cpp" "Pieces/Bishop.cpp" "../include/Pieces/Queen.h" "Pieces/Queen.cpp" "../include/Pieces/Pawn.h" "Pieces/Pawn.cpp" "../include/Pieces/Knight.h" "Pieces/Knight.cpp" "../include/PriorityQueue.h" )
