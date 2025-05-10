@@ -15,23 +15,34 @@ std::string MoveRecommender::coordinatesToNotation(int row, int col) const {
     return std::string(1, file) + std::string(1, rank);
 }
 
-std::vector<ChessMove> MoveRecommender::generateValidMoves(bool forWhite) const {
-    std::vector<ChessMove> validMoves;
+bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
+    int moveCode = m_board.validateMove(move.sourcePos, move.destPos);
+    return (moveCode == 41 || moveCode == 42);
+}
 
-    // Iterate through the entire board
+void MoveRecommender::refreshMoveQueues(int topN) {
+    // Clear the queue for the current player
+    if (m_isWhiteTurn) {
+        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
+    }
+    else {
+        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
+    }
+
+    // Process moves directly without storing them all in a vector
     for (int srcRow = 0; srcRow < 8; srcRow++) {
         for (int srcCol = 0; srcCol < 8; srcCol++) {
             // Check if there's a piece at this position
             std::shared_ptr<Piece> piece = m_board.getPieceAt(srcRow, srcCol);
 
-            // Skip if no piece or if piece color doesn't match the requested side
-            if (!piece || piece->getIsWhite() != forWhite) {
+            // Skip if no piece or if piece color doesn't match the current side
+            if (!piece || piece->getIsWhite() != m_isWhiteTurn) {
                 continue;
             }
 
             std::string source = coordinatesToNotation(srcRow, srcCol);
 
-            // Try all possible destinations
+            // Check all possible destinations
             for (int destRow = 0; destRow < 8; destRow++) {
                 for (int destCol = 0; destCol < 8; destCol++) {
                     std::string dest = coordinatesToNotation(destRow, destCol);
@@ -39,57 +50,27 @@ std::vector<ChessMove> MoveRecommender::generateValidMoves(bool forWhite) const 
                     // Check if the move is valid
                     int moveCode = m_board.validateMove(source, dest);
                     if (moveCode == 41 || moveCode == 42) {
-                        // Valid move - add to list
-                        validMoves.emplace_back(source, dest, forWhite);
+                        // Valid move - evaluate it directly
+                        try {
+                            ChessMove move(source, dest, m_isWhiteTurn);
+                            move.score = evaluateMove(move, m_maxDepth, true);
+
+                            // Add to queue if score is meaningful
+                            if (move.score != 0) {
+                                if (m_isWhiteTurn) {
+                                    m_whiteMoveQueue.push(move);
+                                }
+                                else {
+                                    m_blackMoveQueue.push(move);
+                                }
+                            }
+                        }
+                        catch (const std::exception& e) {
+                            std::cerr << "Error evaluating move " << source << dest
+                                << ": " << e.what() << std::endl;
+                        }
                     }
                 }
-            }
-        }
-    }
-
-    return validMoves;
-}
-
-bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
-    int moveCode = m_board.validateMove(move.sourcePos, move.destPos);
-    return (moveCode == 41 || moveCode == 42);
-}
-
-void MoveRecommender::refreshMoveQueues(int topN) {
-    // Clear and rebuild the queue for the current player with max size 5
-    if (m_isWhiteTurn) {
-        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
-
-        std::vector<ChessMove> whiteMoves = generateValidMoves(true);
-        for (auto& move : whiteMoves) {
-            try {
-                // Always maximize for the current player's perspective
-                move.score = evaluateMove(move, m_maxDepth, true);
-                // Add move to queue only if score is meaningful
-                if (move.score != 0) {
-                    m_whiteMoveQueue.push(move);
-                }
-            }
-            catch (const std::exception& e) {
-                std::cerr << "Error evaluating white move " << move.toString() << ": " << e.what() << std::endl;
-            }
-        }
-    }
-    else {
-        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
-
-        std::vector<ChessMove> blackMoves = generateValidMoves(false);
-        for (auto& move : blackMoves) {
-            try {
-                // Always maximize for the current player's perspective
-                move.score = evaluateMove(move, m_maxDepth, true);
-                // Add move to queue only if score is meaningful
-                if (move.score != 0) {
-                    m_blackMoveQueue.push(move);
-                }
-            }
-            catch (const std::exception& e) {
-                std::cerr << "Error evaluating black move " << move.toString() << ": " << e.what() << std::endl;
             }
         }
     }
@@ -153,17 +134,66 @@ int MoveRecommender::evaluateCapture(const ChessMove& move) const {
     std::shared_ptr<Piece> destPiece = m_board.getPieceAt(destRow, destCol);
 
     if (destPiece) {
-        // Piece value approximation
+        // Piece value approximation with medium bonus for captures
         char capturedSymbol = destPiece->getSymbol();
-        return getPieceValue(capturedSymbol) * 10;
+        return getPieceValue(capturedSymbol) * 20; // Increased multiplier for medium bonus
     }
 
     return 0; // No capture
 }
 
 int MoveRecommender::evaluateCheck(int moveCode) const {
-    // If this move puts opponent in check, add points
-    return (moveCode == 41) ? 5 : 0;
+    // If this move puts opponent in check, add significant points (big bonus)
+    return (moveCode == 41) ? 50 : 0;
+}
+
+int MoveRecommender::evaluateCenterControl(int row, int col) const {
+    // Evaluate center control with varying weights based on distance from center
+    const int CENTER_SQUARES[16][2] = {
+        {3, 3}, {3, 4}, {4, 3}, {4, 4},         // Inner center (strongest bonus)
+        {2, 2}, {2, 3}, {2, 4}, {2, 5},         // Extended center (medium bonus)
+        {3, 2}, {4, 2}, {5, 2}, {5, 3},
+        {5, 4}, {5, 5}, {3, 5}, {4, 5}          // Outer center region (small bonus)
+    };
+
+    // Inner center squares (D4, D5, E4, E5)
+    for (int i = 0; i < 4; i++) {
+        if (row == CENTER_SQUARES[i][0] && col == CENTER_SQUARES[i][1]) {
+            return 15; // Strong bonus for controlling the inner center
+        }
+    }
+
+    // Extended center squares
+    for (int i = 4; i < 16; i++) {
+        if (row == CENTER_SQUARES[i][0] && col == CENTER_SQUARES[i][1]) {
+            return 8; // Medium bonus for extended center control
+        }
+    }
+
+    return 0; // No center control bonus
+}
+
+int MoveRecommender::evaluateKingMove(const ChessMove& move) const {
+    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
+    std::shared_ptr<Piece> piece = m_board.getPieceAt(srcRow, srcCol);
+
+    // Check if it's a king move
+    if (piece && tolower(piece->getSymbol()) == 'k') {
+        // Castling is an exception - detected by king moving 2 squares horizontally
+        auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
+        int rowDiff = abs(destRow - srcRow);
+        int colDiff = abs(destCol - srcCol);
+
+        if (rowDiff == 0 && colDiff == 2) {
+            // This is likely castling, which is good
+            return 15; // Bonus for castling
+        }
+
+        // Regular king moves - generally discouraged in middle game
+        return -15; // Penalty for moving the king (except castling)
+    }
+
+    return 0; // Not a king move
 }
 
 int MoveRecommender::evaluateThreat(int row, int col, bool isWhite, int pieceValue) {
@@ -182,9 +212,13 @@ int MoveRecommender::evaluateThreat(int row, int col, bool isWhite, int pieceVal
                     // Our piece is threatened
                     int attackerValue = getPieceValue(attackerPiece->getSymbol());
 
-                    // If threatened by a weaker piece, reduce score
+                    // If threatened by a weaker piece, significantly reduce score (major penalty)
                     if (attackerValue < pieceValue) {
-                        threatScore -= (pieceValue - attackerValue) * 5;
+                        threatScore -= (pieceValue - attackerValue) * 25; // Increased penalty multiplier
+                    }
+                    // Also add a base penalty for any threat
+                    else {
+                        threatScore -= 10;
                     }
                 }
             }
@@ -197,51 +231,55 @@ int MoveRecommender::evaluateThreat(int row, int col, bool isWhite, int pieceVal
 int MoveRecommender::evaluatePosition(const ChessMove& move) {
     int score = 0;
 
+    // Get source and destination coordinates
+    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
+    auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
+
+    // Get source piece information
+    std::shared_ptr<Piece> srcPiece = m_board.getPieceAt(srcRow, srcCol);
+    if (!srcPiece) return score;
+
     // Get move code (if it causes check)
     int moveCode = m_board.validateMove(move.sourcePos, move.destPos);
 
-    // Get source piece information
-    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
-    auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
-    std::shared_ptr<Piece> srcPiece = m_board.getPieceAt(srcRow, srcCol);
-
-    if (!srcPiece) return score;
-
-    // Check destination for potential capture
+    // 1. Evaluate captures (medium bonus)
     std::shared_ptr<Piece> destPiece = m_board.getPieceAt(destRow, destCol);
-
-    // Prioritize captures - significantly higher score for capturing with lower value pieces
     if (destPiece && destPiece->getIsWhite() != srcPiece->getIsWhite()) {
         int captureValue = getPieceValue(destPiece->getSymbol());
         int attackerValue = getPieceValue(srcPiece->getSymbol());
 
-        // Base capture value
-        score += captureValue * 10;
+        // Base capture value (medium bonus)
+        score += captureValue * 20;
 
-        // Bonus for capturing with lower value pieces (tactical advantage)
+        // Extra bonus for capturing with lower value pieces (tactical advantage)
         if (attackerValue < captureValue) {
-            score += (captureValue - attackerValue) * 15; // Higher bonus for favorable trades
+            score += (captureValue - attackerValue) * 25; // Higher bonus for favorable trades
         }
     }
 
-    // Evaluate check value
+    // 2. Evaluate check (big bonus)
     score += evaluateCheck(moveCode);
 
-    // Add a small random component to vary recommendations
-    score += rand() % 3;  // Add 0-2 points of randomness
+    // 3. Evaluate center control (moderate bonus)
+    score += evaluateCenterControl(destRow, destCol);
 
-    // Center control bonus (approximate)
-    if ((destRow == 3 || destRow == 4) && (destCol == 3 || destCol == 4)) {
-        score += 2;  // Small bonus for controlling center squares
-    }
+    // 4. Penalize or reward king moves
+    score += evaluateKingMove(move);
+
+    // 5. Add a small random component to vary recommendations
+    score += rand() % 3;  // Add 0-2 points of randomness
 
     // Store current state to make temporary move
     bool isWhite = srcPiece->getIsWhite();
     int pieceValue = getPieceValue(srcPiece->getSymbol());
 
-    // Make temporary move to evaluate threats
+    // 6. Make temporary move to evaluate threats (significant penalty)
     return makeTemporaryMoveAndEvaluate(move, [&]() {
-        return score + evaluateThreat(destRow, destCol, isWhite, pieceValue);
+        // Threat evaluation is now a major factor in scoring
+        int threatEvaluation = evaluateThreat(destRow, destCol, isWhite, pieceValue);
+
+        // Weight threat evaluation heavily as it's one of the main priorities
+        return score + threatEvaluation;
         });
 }
 
@@ -270,36 +308,70 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
         return baseScore;
     }
 
-    // Make the move and generate opponent's responses
+    // Make the move and evaluate opponent responses
     return makeTemporaryMoveAndEvaluate(move, [&]() {
-        // Generate moves for the opposite side
-        std::vector<ChessMove> opponentMoves = generateValidMoves(!move.isWhite);
+        // Create variables to track best response score
+        int bestScore = isMaximizingPlayer ? INT_MIN : INT_MAX;
+        bool foundValidMove = false;
+
+        // Temporary board state changes have been made - now check opponent responses
+        for (int srcRow = 0; srcRow < 8; srcRow++) {
+            for (int srcCol = 0; srcCol < 8; srcCol++) {
+                // Get piece at this position
+                std::shared_ptr<Piece> piece = m_board.getPieceAt(srcRow, srcCol);
+
+                // Skip if no piece or if piece color doesn't match the opposite side
+                if (!piece || piece->getIsWhite() == move.isWhite) {
+                    continue;
+                }
+
+                std::string source = coordinatesToNotation(srcRow, srcCol);
+
+                // Check all possible destinations
+                for (int destRow = 0; destRow < 8; destRow++) {
+                    for (int destCol = 0; destCol < 8; destCol++) {
+                        std::string dest = coordinatesToNotation(destRow, destCol);
+
+                        // Check if the move is valid
+                        int moveCode = m_board.validateMove(source, dest);
+                        if (moveCode == 41 || moveCode == 42) {
+                            // Found a valid response - evaluate it
+                            ChessMove responseMove(source, dest, !move.isWhite);
+                            int score = evaluateMove(responseMove, depth - 1, !isMaximizingPlayer);
+                            foundValidMove = true;
+
+                            // Update best score based on minimax principle
+                            if (isMaximizingPlayer) {
+                                bestScore = std::max(bestScore, score);
+                                // Early termination for efficiency
+                                if (bestScore > 500) break;
+                            }
+                            else {
+                                bestScore = std::min(bestScore, score);
+                                // Early termination for efficiency
+                                if (bestScore < -500) break;
+                            }
+                        }
+                    }
+                    if ((isMaximizingPlayer && bestScore > 500) ||
+                        (!isMaximizingPlayer && bestScore < -500)) {
+                        break;
+                    }
+                }
+                if ((isMaximizingPlayer && bestScore > 500) ||
+                    (!isMaximizingPlayer && bestScore < -500)) {
+                    break;
+                }
+            }
+            if ((isMaximizingPlayer && bestScore > 500) ||
+                (!isMaximizingPlayer && bestScore < -500)) {
+                break;
+            }
+        }
 
         // If no valid moves for opponent, it's either checkmate or stalemate
-        if (opponentMoves.empty()) {
+        if (!foundValidMove) {
             return isMaximizingPlayer ? 1000 : -1000; // Large value for checkmate
-        }
-
-        int bestScore;
-        if (isMaximizingPlayer) {
-            bestScore = INT_MIN;
-            for (const auto& opponentMove : opponentMoves) {
-                int score = evaluateMove(opponentMove, depth - 1, false);
-                bestScore = std::max(bestScore, score);
-
-                // Early termination for efficiency (optional alpha-beta pruning concept)
-                if (bestScore > 500) break;
-            }
-        }
-        else {
-            bestScore = INT_MAX;
-            for (const auto& opponentMove : opponentMoves) {
-                int score = evaluateMove(opponentMove, depth - 1, true);
-                bestScore = std::min(bestScore, score);
-
-                // Early termination for efficiency (optional alpha-beta pruning concept)
-                if (bestScore < -500) break;
-            }
         }
 
         // Return the combined score - base evaluation plus minimax result
@@ -308,7 +380,7 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
 }
 
 std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
-    // Check if we need to refresh the move queues (if they're empty or too few moves)
+    // Check if we need to refresh the move queues
     if ((m_isWhiteTurn && m_whiteMoveQueue.size() < topN) ||
         (!m_isWhiteTurn && m_blackMoveQueue.size() < topN)) {
         refreshMoveQueues(topN);

@@ -38,50 +38,43 @@ struct ChessMoveComparator {
 
 class MoveRecommender {
 public:
-    MoveRecommender(Board& board, int maxDepth = 2);
+    MoveRecommender(Board& board, int maxDepth);
 
-    // Generate recommendations for best moves
-    std::vector<ChessMove> recommendMoves(int topN = 3);
+    // Recommend top N moves for current player
+    std::vector<ChessMove> recommendMoves(int topN);
 
-    // Print recommended moves to console
-    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
-
-    // Update cached moves after player makes a move
+    // Update cached moves when a move is played
     void updateCachedMoves(const std::string& source, const std::string& dest);
+
+    // Print recommendations to console (for debugging)
+    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
 
 private:
     Board& m_board;
     int m_maxDepth;
+    bool m_isWhiteTurn;
 
-    // Separate cached priority queues for white and black moves
+    // Priority queues for caching move evaluations
     PriorityQueue<ChessMove, ChessMoveComparator> m_whiteMoveQueue;
     PriorityQueue<ChessMove, ChessMoveComparator> m_blackMoveQueue;
 
-    // Keep track of whose turn it is
-    bool m_isWhiteTurn;
-
-    // Chess notation conversion
+    // Helper methods
     std::string coordinatesToNotation(int row, int col) const;
-
-    // Move generation and validation
-    std::vector<ChessMove> generateValidMoves(bool forWhite) const;
-
-    // Validate if a cached move is still valid
     bool isMoveStillValid(const ChessMove& move) const;
-
-    // Refresh the move queues
     void refreshMoveQueues(int topN);
 
-    // Piece valuation
-    int getPieceValue(char pieceSymbol) const;
+    // Evaluation methods
+    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
+    int evaluatePosition(const ChessMove& move);
+    int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
 
-    // Position evaluation functions
+    // Component evaluation methods
+    int getPieceValue(char pieceSymbol) const;
     int evaluateCapture(const ChessMove& move) const;
     int evaluateCheck(int moveCode) const;
     int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
-    int evaluatePosition(const ChessMove& move);
-    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
 
-    // Temporary move handling for evaluation
-    int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
+    // New evaluation methods
+    int evaluateCenterControl(int row, int col) const;  // Evaluate center control
+    int evaluateKingMove(const ChessMove& move) const;  // Penalize king moves (except castling)
 };
