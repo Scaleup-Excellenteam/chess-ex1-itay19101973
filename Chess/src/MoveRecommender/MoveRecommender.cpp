@@ -5,7 +5,9 @@
 #include <climits>
 
 MoveRecommender::MoveRecommender(Board& board, int maxDepth)
-    : m_board(board), m_maxDepth(maxDepth) {
+    : m_board(board), m_maxDepth(maxDepth), m_isWhiteTurn(true),
+    m_whiteMoveQueue(0), m_blackMoveQueue(0) {
+    // Initialize with empty queues
 }
 
 std::string MoveRecommender::coordinatesToNotation(int row, int col) const {
@@ -14,12 +16,20 @@ std::string MoveRecommender::coordinatesToNotation(int row, int col) const {
     return std::string(1, file) + std::string(1, rank);
 }
 
-std::vector<ChessMove> MoveRecommender::generateValidMoves() const {
+std::vector<ChessMove> MoveRecommender::generateValidMoves(bool forWhite) const {
     std::vector<ChessMove> validMoves;
 
     // Iterate through the entire board
     for (int srcRow = 0; srcRow < 8; srcRow++) {
         for (int srcCol = 0; srcCol < 8; srcCol++) {
+            // Check if there's a piece at this position
+            std::shared_ptr<Piece> piece = m_board.getPieceAt(srcRow, srcCol);
+
+            // Skip if no piece or if piece color doesn't match the requested side
+            if (!piece || piece->getIsWhite() != forWhite) {
+                continue;
+            }
+
             std::string source = coordinatesToNotation(srcRow, srcCol);
 
             // Try all possible destinations
@@ -31,7 +41,7 @@ std::vector<ChessMove> MoveRecommender::generateValidMoves() const {
                     int moveCode = m_board.validateMove(source, dest);
                     if (moveCode == 41 || moveCode == 42) {
                         // Valid move - add to list
-                        validMoves.emplace_back(source, dest);
+                        validMoves.emplace_back(source, dest, forWhite);
                     }
                 }
             }
@@ -39,6 +49,87 @@ std::vector<ChessMove> MoveRecommender::generateValidMoves() const {
     }
 
     return validMoves;
+}
+
+bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
+    int moveCode = m_board.validateMove(move.sourcePos, move.destPos);
+    return (moveCode == 41 || moveCode == 42);
+}
+
+void MoveRecommender::refreshMoveQueues(int topN) {
+    // Clear and rebuild the queue for the current player
+    if (m_isWhiteTurn) {
+        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(topN);
+
+        // Generate all valid white moves
+        std::vector<ChessMove> whiteMoves = generateValidMoves(true);
+
+        for (auto& move : whiteMoves) {
+            try {
+                move.score = evaluateMove(move, m_maxDepth, true);
+                m_whiteMoveQueue.push(move);
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Error evaluating white move " << move.toString()
+                    << ": " << e.what() << std::endl;
+            }
+        }
+    }
+    else {
+        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(topN);
+
+        // Generate all valid black moves
+        std::vector<ChessMove> blackMoves = generateValidMoves(false);
+
+        for (auto& move : blackMoves) {
+            try {
+                move.score = evaluateMove(move, m_maxDepth, true);
+                m_blackMoveQueue.push(move);
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Error evaluating black move " << move.toString()
+                    << ": " << e.what() << std::endl;
+            }
+        }
+    }
+}
+
+void MoveRecommender::updateCachedMoves(const std::string& source, const std::string& dest) {
+    // Find if the played move was in our recommendations
+    ChessMove playedMove(source, dest, m_isWhiteTurn);
+
+    // Toggle player turn after a move
+    m_isWhiteTurn = !m_isWhiteTurn;
+
+    // Both queues need validation since the board state changed
+    PriorityQueue<ChessMove, ChessMoveComparator> newWhiteQueue(m_whiteMoveQueue.size());
+    PriorityQueue<ChessMove, ChessMoveComparator> newBlackQueue(m_blackMoveQueue.size());
+
+    // Revalidate white moves
+    for (const ChessMove& move : m_whiteMoveQueue.getList()) {
+        // Skip the move that was just played
+        if (move == playedMove) continue;
+
+        // Check if the move is still valid
+        if (isMoveStillValid(move)) {
+            newWhiteQueue.push(move);
+        }
+    }
+
+    // Revalidate black moves
+    for (const ChessMove& move : m_blackMoveQueue.getList()) {
+        // Skip the move that was just played
+        if (move == playedMove) continue;
+
+        // Check if the move is still valid
+        if (isMoveStillValid(move)) {
+            newBlackQueue.push(move);
+        }
+    }
+
+    // Update the queues with validated moves
+    m_whiteMoveQueue = std::move(newWhiteQueue);
+    m_blackMoveQueue = std::move(newBlackQueue);
 }
 
 int MoveRecommender::getPieceValue(char pieceSymbol) const {
@@ -152,7 +243,8 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
 
     // Make the move and generate opponent's responses
     return makeTemporaryMoveAndEvaluate(move, [&]() {
-        std::vector<ChessMove> opponentMoves = generateValidMoves();
+        // Generate moves for the opposite side
+        std::vector<ChessMove> opponentMoves = generateValidMoves(!move.isWhite);
 
         // If no valid moves for opponent, it's either checkmate or stalemate
         if (opponentMoves.empty()) {
@@ -186,31 +278,28 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
 }
 
 std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
-    std::vector<ChessMove> allMoves = generateValidMoves();
-    PriorityQueue<ChessMove, ChessMoveComparator> moveQueue(topN);
-
-    for (auto& move : allMoves) {
-        try {
-            move.score = evaluateMove(move, m_maxDepth, true);
-            moveQueue.push(move);
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error evaluating move " << move.toString()
-                << ": " << e.what() << std::endl;
-        }
+    // Check if we need to refresh the move queues (if they're empty or too few moves)
+    if ((m_isWhiteTurn && m_whiteMoveQueue.size() < topN) ||
+        (!m_isWhiteTurn && m_blackMoveQueue.size() < topN)) {
+        refreshMoveQueues(topN);
     }
 
-    // Extract top N moves
+    // Extract top N moves from the appropriate queue
     std::vector<ChessMove> recommendations;
-    while (!moveQueue.isEmpty() && recommendations.size() < topN) {
-        recommendations.push_back(moveQueue.poll());
+
+    // Create a temporary queue to avoid destroying the original queue
+    PriorityQueue<ChessMove, ChessMoveComparator> tempQueue =
+        m_isWhiteTurn ? m_whiteMoveQueue : m_blackMoveQueue;
+
+    while (!tempQueue.isEmpty() && recommendations.size() < topN) {
+        recommendations.push_back(tempQueue.poll());
     }
 
     return recommendations;
 }
 
 void MoveRecommender::printRecommendations(const std::vector<ChessMove>& recommendations) const {
-    std::cout << "Recommended moves:" << std::endl;
+    std::cout << "Recommended moves for " << (m_isWhiteTurn ? "White" : "Black") << ":" << std::endl;
     int rank = 1;
     for (const auto& move : recommendations) {
         std::cout << rank << ". " << move.toString() << std::endl;
