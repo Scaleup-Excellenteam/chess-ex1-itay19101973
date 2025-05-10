@@ -32,9 +32,7 @@ struct ChessMove {
 // Comparator for ChessMove objects based on their score
 struct ChessMoveComparator {
     int operator()(const ChessMove& a, const ChessMove& b) const {
-        // Return positive if a has higher priority than b
-        // For chess moves, higher score means higher priority
-        return b.score - a.score; // This makes higher scores come first
+        return a.score - b.score; // Now correctly prioritizes higher scores
     }
 };
 

@@ -6,8 +6,7 @@
 
 MoveRecommender::MoveRecommender(Board& board, int maxDepth)
     : m_board(board), m_maxDepth(maxDepth), m_isWhiteTurn(true),
-    m_whiteMoveQueue(0), m_blackMoveQueue(0) {
-    // Initialize with empty queues
+    m_whiteMoveQueue(5), m_blackMoveQueue(5) {  // Initialize queues with max size 5
 }
 
 std::string MoveRecommender::coordinatesToNotation(int row, int col) const {
@@ -57,77 +56,61 @@ bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
 }
 
 void MoveRecommender::refreshMoveQueues(int topN) {
-    // Clear and rebuild the queue for the current player
+    // Clear and rebuild the queue for the current player with max size 5
     if (m_isWhiteTurn) {
-        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(topN);
+        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
 
-        // Generate all valid white moves
         std::vector<ChessMove> whiteMoves = generateValidMoves(true);
-
         for (auto& move : whiteMoves) {
             try {
-                move.score = evaluateMove(move, m_maxDepth, true);
+                move.score = evaluateMove(move, m_maxDepth, true);  // White is maximizing
                 m_whiteMoveQueue.push(move);
             }
             catch (const std::exception& e) {
-                std::cerr << "Error evaluating white move " << move.toString()
-                    << ": " << e.what() << std::endl;
+                std::cerr << "Error evaluating white move " << move.toString() << ": " << e.what() << std::endl;
             }
         }
     }
     else {
-        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(topN);
+        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
 
-        // Generate all valid black moves
         std::vector<ChessMove> blackMoves = generateValidMoves(false);
-
         for (auto& move : blackMoves) {
             try {
-                move.score = evaluateMove(move, m_maxDepth, true);
+                move.score = evaluateMove(move, m_maxDepth, false);  // Black is minimizing (corrected)
                 m_blackMoveQueue.push(move);
             }
             catch (const std::exception& e) {
-                std::cerr << "Error evaluating black move " << move.toString()
-                    << ": " << e.what() << std::endl;
+                std::cerr << "Error evaluating black move " << move.toString() << ": " << e.what() << std::endl;
             }
         }
     }
 }
 
 void MoveRecommender::updateCachedMoves(const std::string& source, const std::string& dest) {
-    // Find if the played move was in our recommendations
     ChessMove playedMove(source, dest, m_isWhiteTurn);
-
-    // Toggle player turn after a move
     m_isWhiteTurn = !m_isWhiteTurn;
 
-    // Both queues need validation since the board state changed
-    PriorityQueue<ChessMove, ChessMoveComparator> newWhiteQueue(m_whiteMoveQueue.size());
-    PriorityQueue<ChessMove, ChessMoveComparator> newBlackQueue(m_blackMoveQueue.size());
+    // Reinitialize queues with max size 5
+    PriorityQueue<ChessMove, ChessMoveComparator> newWhiteQueue(5);
+    PriorityQueue<ChessMove, ChessMoveComparator> newBlackQueue(5);
 
-    // Revalidate white moves
+    // Revalidate and repopulate white moves
     for (const ChessMove& move : m_whiteMoveQueue.getList()) {
-        // Skip the move that was just played
         if (move == playedMove) continue;
-
-        // Check if the move is still valid
         if (isMoveStillValid(move)) {
             newWhiteQueue.push(move);
         }
     }
 
-    // Revalidate black moves
+    // Revalidate and repopulate black moves
     for (const ChessMove& move : m_blackMoveQueue.getList()) {
-        // Skip the move that was just played
         if (move == playedMove) continue;
-
-        // Check if the move is still valid
         if (isMoveStillValid(move)) {
             newBlackQueue.push(move);
         }
     }
 
-    // Update the queues with validated moves
     m_whiteMoveQueue = std::move(newWhiteQueue);
     m_blackMoveQueue = std::move(newBlackQueue);
 }
