@@ -25,7 +25,7 @@ struct ChessMove {
 // Comparator for ChessMove objects based on their score
 struct ChessMoveComparator {
     int operator()(const ChessMove& a, const ChessMove& b) const {
-        return a.score - b.score; // Higher score is better
+        return b.score - a.score; // Higher score is better
     }
 };
 

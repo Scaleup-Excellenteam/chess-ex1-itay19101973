@@ -1,6 +1,7 @@
 // Chess 
 #include "Chess.h"
 #include "Board.h"
+#include "MoveRecommender/MoveRecommender.h"
 
 int main()
 {
@@ -8,6 +9,9 @@ int main()
 
 	Chess a(board);
 	Board chessBoard(board);
+	MoveRecommender recommender(chessBoard, 2);
+	std::vector<ChessMove> recommendations = recommender.recommendMoves(3);
+	recommender.printRecommendations(recommendations);
 	int codeResponse = 0;
 	string res = a.getInput();
 	while (res != "exit")
@@ -27,6 +31,8 @@ int main()
 		*/
 
 		/**/ 
+		
+		
 		{ // put your code here instead that code
 			std::string source = res.substr(0, 2);
 			std::string dest = res.substr(2, 2);
@@ -38,7 +44,11 @@ int main()
 		/**/
 
 		a.setCodeResponse(codeResponse);
-		res = a.getInput(); 
+		recommender.recommendMoves(3);
+		recommender.printRecommendations(recommendations);
+		res = a.getInput();
+		
+		
 	}
 
 	cout << endl << "Exiting " << endl; 
