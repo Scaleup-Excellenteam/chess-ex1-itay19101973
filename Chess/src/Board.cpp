@@ -269,3 +269,52 @@ void Board::restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece>
 }
 
 
+// Save the complete state of the board
+BoardState Board::saveState() const {
+    BoardState state;
+
+    // Copy the entire board grid using deep copy of each piece
+    state.boardGrid.resize(8, std::vector<std::shared_ptr<Piece>>(8, nullptr));
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            auto piece = m_board[row][col];
+            if (piece) {
+                // Create a new piece with the same properties
+                char symbol = piece->getSymbol();
+                state.boardGrid[row][col] = PieceFactory::createPiece(symbol, row, col);
+            }
+        }
+    }
+
+    // Save current turn
+    state.isWhiteTurn = m_isWhiteTurn;
+
+    // Save king positions
+    state.whiteKingRow = m_whiteKingRow;
+    state.whiteKingCol = m_whiteKingCol;
+    state.blackKingRow = m_blackKingRow;
+    state.blackKingCol = m_blackKingCol;
+
+    return state;
+}
+
+// Restore the board to a previously saved state
+void Board::restoreState(const BoardState& state) {
+    // Restore the board grid
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            m_board[row][col] = state.boardGrid[row][col];
+        }
+    }
+
+    // Restore current turn
+    m_isWhiteTurn = state.isWhiteTurn;
+
+    // Restore king positions
+    m_whiteKingRow = state.whiteKingRow;
+    m_whiteKingCol = state.whiteKingCol;
+    m_blackKingRow = state.blackKingRow;
+    m_blackKingCol = state.blackKingCol;
+}
+
+

@@ -29,45 +29,37 @@ struct ChessMoveComparator {
     }
 };
 
-// Class for recommending chess moves
+
 class MoveRecommender {
+public:
+    MoveRecommender(Board& board, int maxDepth = 2);
+
+    // Generate recommendations for best moves
+    std::vector<ChessMove> recommendMoves(int topN = 3);
+
+    // Print recommended moves to console
+    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
+
 private:
     Board& m_board;
     int m_maxDepth;
 
-    // Convert board coordinates to chess notation
+    // Chess notation conversion
     std::string coordinatesToNotation(int row, int col) const;
 
-    // Generate all possible valid moves for current player
+    // Move generation and validation
     std::vector<ChessMove> generateValidMoves() const;
 
-    // Evaluate a move's score at the given depth
-    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
-
-    // Evaluate the immediate value of a position
-    int evaluatePosition(const ChessMove& move);
-
-    // Calculate piece value
+    // Piece valuation
     int getPieceValue(char pieceSymbol) const;
 
-    // Check if piece is threatened by a weaker piece
-    int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
-
-    // Evaluate capture value
+    // Position evaluation functions
     int evaluateCapture(const ChessMove& move) const;
-
-    // Evaluate check value
     int evaluateCheck(int moveCode) const;
+    int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
+    int evaluatePosition(const ChessMove& move);
+    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
 
-    // Make a temporary move and restore afterward
+    // Temporary move handling for evaluation
     int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
-
-public:
-    MoveRecommender(Board& board, int maxDepth = 2);
-
-    // Recommend top N moves
-    std::vector<ChessMove> recommendMoves(int topN = 5);
-
-    // Output recommendations to console
-    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
 };

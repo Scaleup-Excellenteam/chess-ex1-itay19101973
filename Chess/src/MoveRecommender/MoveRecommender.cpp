@@ -129,25 +129,17 @@ int MoveRecommender::evaluatePosition(const ChessMove& move) {
 }
 
 int MoveRecommender::makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc) {
-    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
-    auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
+    // Save the complete board state
+    BoardState savedState = m_board.saveState();
 
-    // Save board state before move
-    bool originalTurn = m_board.getIsWhiteTurn();
-
-    // Execute move
+    // Execute the move
     m_board.makeMove(move.sourcePos, move.destPos);
 
     // Evaluate position
     int result = evaluationFunc();
 
-    // We need to execute another move to get back to the original board state and turn
-    // This is a bit of a hack since we don't have direct board state restoration
-
-    // Find a valid move to return back
-    std::string returnSource = move.destPos;
-    std::string returnDest = move.sourcePos;
-    m_board.makeMove(returnSource, returnDest);
+    // Restore the board to its previous state
+    m_board.restoreState(savedState);
 
     return result;
 }

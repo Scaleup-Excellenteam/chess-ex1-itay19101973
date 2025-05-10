@@ -7,6 +7,24 @@
 #include "PieceFactory/PieceFactory.h"
 #include "Pieces/King.h"
 
+
+// Structure to save board state
+struct BoardState {
+    // The complete board state (8x8 grid of pieces)
+    std::vector<std::vector<std::shared_ptr<Piece>>> boardGrid;
+
+    // Current turn
+    bool isWhiteTurn;
+
+    // King positions
+    int whiteKingRow;
+    int whiteKingCol;
+    int blackKingRow;
+    int blackKingCol;
+};
+
+
+
 /*
 * class Board
 * =====================
@@ -30,6 +48,11 @@ public:
 
     bool getIsWhiteTurn() const;
     std::pair<int, int> notationToCoordinates(std::string notation);
+
+
+    // State management for move evaluation
+    BoardState saveState() const;
+    void restoreState(const BoardState& state);
      
      
 
