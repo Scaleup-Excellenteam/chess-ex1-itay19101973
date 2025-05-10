@@ -63,8 +63,12 @@ void MoveRecommender::refreshMoveQueues(int topN) {
         std::vector<ChessMove> whiteMoves = generateValidMoves(true);
         for (auto& move : whiteMoves) {
             try {
-                move.score = evaluateMove(move, m_maxDepth, true);  // White is maximizing
-                m_whiteMoveQueue.push(move);
+                // Always maximize for the current player's perspective
+                move.score = evaluateMove(move, m_maxDepth, true);
+                // Add move to queue only if score is meaningful
+                if (move.score != 0) {
+                    m_whiteMoveQueue.push(move);
+                }
             }
             catch (const std::exception& e) {
                 std::cerr << "Error evaluating white move " << move.toString() << ": " << e.what() << std::endl;
@@ -77,13 +81,24 @@ void MoveRecommender::refreshMoveQueues(int topN) {
         std::vector<ChessMove> blackMoves = generateValidMoves(false);
         for (auto& move : blackMoves) {
             try {
-                move.score = evaluateMove(move, m_maxDepth, false);  // Black is minimizing (corrected)
-                m_blackMoveQueue.push(move);
+                // Always maximize for the current player's perspective
+                move.score = evaluateMove(move, m_maxDepth, true);
+                // Add move to queue only if score is meaningful
+                if (move.score != 0) {
+                    m_blackMoveQueue.push(move);
+                }
             }
             catch (const std::exception& e) {
                 std::cerr << "Error evaluating black move " << move.toString() << ": " << e.what() << std::endl;
             }
         }
+    }
+
+    // Debug output to confirm scores are being calculated
+    std::cout << "Refreshed move queue for " << (m_isWhiteTurn ? "White" : "Black") << std::endl;
+    const auto& currentQueue = m_isWhiteTurn ? m_whiteMoveQueue.getList() : m_blackMoveQueue.getList();
+    for (const auto& move : currentQueue) {
+        std::cout << "  " << move.toString() << " (Score: " << move.score << ")" << std::endl;
     }
 }
 
@@ -99,7 +114,10 @@ void MoveRecommender::updateCachedMoves(const std::string& source, const std::st
     for (const ChessMove& move : m_whiteMoveQueue.getList()) {
         if (move == playedMove) continue;
         if (isMoveStillValid(move)) {
-            newWhiteQueue.push(move);
+            // Re-evaluate the move score since the board has changed
+            ChessMove updatedMove = move;
+            updatedMove.score = evaluateMove(updatedMove, m_maxDepth, m_isWhiteTurn);
+            newWhiteQueue.push(updatedMove);
         }
     }
 
@@ -107,7 +125,10 @@ void MoveRecommender::updateCachedMoves(const std::string& source, const std::st
     for (const ChessMove& move : m_blackMoveQueue.getList()) {
         if (move == playedMove) continue;
         if (isMoveStillValid(move)) {
-            newBlackQueue.push(move);
+            // Re-evaluate the move score since the board has changed
+            ChessMove updatedMove = move;
+            updatedMove.score = evaluateMove(updatedMove, m_maxDepth, !m_isWhiteTurn);
+            newBlackQueue.push(updatedMove);
         }
     }
 
@@ -179,18 +200,40 @@ int MoveRecommender::evaluatePosition(const ChessMove& move) {
     // Get move code (if it causes check)
     int moveCode = m_board.validateMove(move.sourcePos, move.destPos);
 
-    // Evaluate capture value
-    score += evaluateCapture(move);
+    // Get source piece information
+    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
+    auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
+    std::shared_ptr<Piece> srcPiece = m_board.getPieceAt(srcRow, srcCol);
+
+    if (!srcPiece) return score;
+
+    // Check destination for potential capture
+    std::shared_ptr<Piece> destPiece = m_board.getPieceAt(destRow, destCol);
+
+    // Prioritize captures - significantly higher score for capturing with lower value pieces
+    if (destPiece && destPiece->getIsWhite() != srcPiece->getIsWhite()) {
+        int captureValue = getPieceValue(destPiece->getSymbol());
+        int attackerValue = getPieceValue(srcPiece->getSymbol());
+
+        // Base capture value
+        score += captureValue * 10;
+
+        // Bonus for capturing with lower value pieces (tactical advantage)
+        if (attackerValue < captureValue) {
+            score += (captureValue - attackerValue) * 15; // Higher bonus for favorable trades
+        }
+    }
 
     // Evaluate check value
     score += evaluateCheck(moveCode);
 
-    // Evaluate threats
-    auto [srcRow, srcCol] = m_board.notationToCoordinates(move.sourcePos);
-    auto [destRow, destCol] = m_board.notationToCoordinates(move.destPos);
+    // Add a small random component to vary recommendations
+    score += rand() % 3;  // Add 0-2 points of randomness
 
-    std::shared_ptr<Piece> srcPiece = m_board.getPieceAt(srcRow, srcCol);
-    if (!srcPiece) return score;
+    // Center control bonus (approximate)
+    if ((destRow == 3 || destRow == 4) && (destCol == 3 || destCol == 4)) {
+        score += 2;  // Small bonus for controlling center squares
+    }
 
     // Store current state to make temporary move
     bool isWhite = srcPiece->getIsWhite();
@@ -219,9 +262,12 @@ int MoveRecommender::makeTemporaryMoveAndEvaluate(const ChessMove& move, std::fu
 }
 
 int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer) {
+    // Base score from direct position evaluation
+    int baseScore = evaluatePosition(move);
+
     // Base case: reached maximum depth or leaf node
     if (depth == 0) {
-        return evaluatePosition(move);
+        return baseScore;
     }
 
     // Make the move and generate opponent's responses
@@ -256,7 +302,8 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
             }
         }
 
-        return bestScore;
+        // Return the combined score - base evaluation plus minimax result
+        return baseScore + (bestScore / (depth + 1));  // Weight by depth
         });
 }
 
@@ -285,7 +332,7 @@ void MoveRecommender::printRecommendations(const std::vector<ChessMove>& recomme
     std::cout << "Recommended moves for " << (m_isWhiteTurn ? "White" : "Black") << ":" << std::endl;
     int rank = 1;
     for (const auto& move : recommendations) {
-        std::cout << rank << ". " << move.toString() << std::endl;
+        std::cout << rank << ". " << move.toString() << " (Score: " << move.score << ")" << std::endl;
         rank++;
     }
 }
