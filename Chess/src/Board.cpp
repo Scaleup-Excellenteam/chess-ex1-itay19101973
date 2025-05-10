@@ -124,6 +124,35 @@ void Board::makeMove(const std::string& source, const std::string& dest)
     // Switch turn
     m_isWhiteTurn = !m_isWhiteTurn;
 }
+//===============================================================
+// returns piece at given coordinates
+std::shared_ptr<Piece> Board::getPieceAt(int row, int col) const
+{
+    if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+        return m_board[row][col];
+    }
+    return nullptr;
+}
+
+//===============
+int Board::getWhiteKingRow() const
+{
+    return this->m_whiteKingRow;
+}
+//==================
+int Board::getWhiteKingCol() const
+{
+    return this->m_whiteKingCol;
+}
+//=================
+int Board::getBlackKingRow() const
+{
+    return this->m_blackKingRow;
+}
+int Board::getBlackKingCol() const
+{
+    return this->m_blackKingCol;
+}
 //=================================================================================================
 // function check if the given king is in check
 bool Board::isKingInCheck(bool isWhiteKing)

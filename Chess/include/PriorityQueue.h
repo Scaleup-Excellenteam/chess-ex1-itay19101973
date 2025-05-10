@@ -69,7 +69,7 @@ void PriorityQueue<T, Comparator>::push(const T& element) {
 template <typename T, typename Comparator>
 T PriorityQueue<T, Comparator>::poll() {
     if (isEmpty()) {
-        throw EmptyQueueException();
+       // throw EmptyQueueException(); TODO
     }
 
     // The front element is always the highest priority one

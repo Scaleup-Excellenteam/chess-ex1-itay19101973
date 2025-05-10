@@ -19,7 +19,17 @@ public:
     Board(const std::string& initialBoard);
     
     int validateMove(const std::string& source, const std::string& dest);
-    void makeMove(const std::string& source, const std::string& dest); 
+    void makeMove(const std::string& source, const std::string& dest);
+    
+    std::shared_ptr<Piece> getPieceAt(int row, int col) const; 
+
+    int getWhiteKingRow() const;
+    int getWhiteKingCol() const;
+    int getBlackKingRow() const;
+    int getBlackKingCol() const;
+
+    bool getIsWhiteTurn() const;
+    std::pair<int, int> notationToCoordinates(std::string notation);
      
      
 
@@ -36,9 +46,9 @@ private:
         int& oldKingCol, const int& destRow, const int& destCol);
     void restoreBoardPos(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> capturedPiece,
         int srcRow, int srcCol, int destRow, int destCol, bool isKingMoving);
-    std::pair<int, int> notationToCoordinates(std::string notation);
+    
     bool isKingInCheck(bool isWhiteKing);
-    bool getIsWhiteTurn() const;
+    
 };
 
 
