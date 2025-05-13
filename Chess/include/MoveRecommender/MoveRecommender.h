@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "Board/Board.h"
 #include "ChessMove.h"
 #include "PriorityQueue.h"
 #include <vector>

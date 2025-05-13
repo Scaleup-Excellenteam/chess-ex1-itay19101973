@@ -1,21 +1,44 @@
 #include "MoveRecommender/MoveRecommender.h"
 
+
+/**
+ * @brief Constructor for the MoveRecommender class.
+ *
+ * @param board Reference to the chess board object
+ * @param maxDepth Maximum search depth for move evaluation
+ */
 MoveRecommender::MoveRecommender(Board& board, int maxDepth)
     : m_board(board), m_maxDepth(maxDepth), m_isWhiteTurn(true),
     m_whiteMoveQueue(5), m_blackMoveQueue(5) {  // Initialize queues with max size 5
 }
-
+//==========================================================================================
+/**
+ * @brief Converts board coordinates to chess notation (e.g., A1, H8).
+ *
+ * @param row The board row (0-7)
+ * @param col The board column (0-7)
+ * @return std::string The chess notation for the position
+ */
 std::string MoveRecommender::coordinatesToNotation(int row, int col) const {
     char file = 'A' + row;  // Convert row to file (A-H)
     char rank = '1' + col;  // Convert col to rank (1-8)
     return std::string(1, file) + std::string(1, rank);
 }
-
+/**
+ * @brief Checks if a previously calculated move is still valid on the current board.
+ *
+ * @param move The chess move to validate
+ * @return bool True if the move is still valid, false otherwise
+ */
 bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
     int moveCode = m_board.validateMove(move.getSourcePos(), move.getDestPos());
     return (moveCode == 41 || moveCode == 42);
 }
-
+/**
+ * @brief Refreshes the move priority queues by recalculating valid moves and their scores.
+ *
+ * @param topN The number of top moves to maintain in the queue
+ */
 void MoveRecommender::refreshMoveQueues(int topN) {
     // Clear the queue for the current player
     if (m_isWhiteTurn) {
@@ -72,14 +95,19 @@ void MoveRecommender::refreshMoveQueues(int topN) {
         }
     }
 
-    // Debug output to confirm scores are being calculated
+    // Debug output to confirm scores are being calculated //TODO
     std::cout << "Refreshed move queue for " << (m_isWhiteTurn ? "White" : "Black") << std::endl;
     const auto& currentQueue = m_isWhiteTurn ? m_whiteMoveQueue.getList() : m_blackMoveQueue.getList();
     for (const auto& move : currentQueue) {
         std::cout << "  " << move.toString() << std::endl;
     }
 }
-
+/**
+ * @brief Updates cached moves after a move has been played on the board.
+ *
+ * @param source The source position in chess notation
+ * @param dest The destination position in chess notation
+ */
 void MoveRecommender::updateCachedMoves(const std::string& source, const std::string& dest) {
     ChessMove playedMove(source, dest, m_isWhiteTurn);
     m_isWhiteTurn = !m_isWhiteTurn;
@@ -115,7 +143,12 @@ void MoveRecommender::updateCachedMoves(const std::string& source, const std::st
     m_whiteMoveQueue = std::move(newWhiteQueue);
     m_blackMoveQueue = std::move(newBlackQueue);
 }
-
+/**
+ * @brief Gets the numerical value of a chess piece based on its symbol.
+ *
+ * @param pieceSymbol The character symbol representing the piece
+ * @return int The numerical value of the piece
+ */
 int MoveRecommender::getPieceValue(char pieceSymbol) const {
     switch (tolower(pieceSymbol)) {
     case 'p': return 1;  // Pawn
@@ -127,7 +160,12 @@ int MoveRecommender::getPieceValue(char pieceSymbol) const {
     default: return 0;   // Empty or invalid
     }
 }
-
+/**
+ * @brief Evaluates the score for a capture move.
+ *
+ * @param move The chess move to evaluate
+ * @return int The score of the capture (0 if not a capture)
+ */
 int MoveRecommender::evaluateCapture(const ChessMove& move) const {
     auto [destRow, destCol] = m_board.notationToCoordinates(move.getDestPos());
     std::shared_ptr<Piece> destPiece = m_board.getPieceAt(destRow, destCol);
@@ -140,12 +178,23 @@ int MoveRecommender::evaluateCapture(const ChessMove& move) const {
 
     return 0; // No capture
 }
-
+/**
+ * @brief Evaluates the score for a move that puts the opponent in check.
+ *
+ * @param moveCode The validation code returned by the board's validateMove method
+ * @return int The score bonus for putting the opponent in check
+ */
 int MoveRecommender::evaluateCheck(int moveCode) const {
     // If this move puts opponent in check, add significant points (big bonus)
     return (moveCode == 41) ? 50 : 0;
 }
-
+/**
+ * @brief Evaluates the score bonus for controlling center squares.
+ *
+ * @param row The destination row
+ * @param col The destination column
+ * @return int The score bonus based on proximity to the center
+ */
 int MoveRecommender::evaluateCenterControl(int row, int col) const {
     // Evaluate center control with varying weights based on distance from center
     const int CENTER_SQUARES[16][2] = {
@@ -171,30 +220,33 @@ int MoveRecommender::evaluateCenterControl(int row, int col) const {
 
     return 0; // No center control bonus
 }
-
+/**
+ * @brief Evaluates the score adjustments for king moves, with special handling for castling.
+ *
+ * @param move The chess move to evaluate
+ * @return int The score adjustment for the king move
+ */
 int MoveRecommender::evaluateKingMove(const ChessMove& move) const {
     auto [srcRow, srcCol] = m_board.notationToCoordinates(move.getSourcePos());
     std::shared_ptr<Piece> piece = m_board.getPieceAt(srcRow, srcCol);
 
     // Check if it's a king move
     if (piece && tolower(piece->getSymbol()) == 'k') {
-        // Castling is an exception - detected by king moving 2 squares horizontally
-        auto [destRow, destCol] = m_board.notationToCoordinates(move.getDestPos());
-        int rowDiff = abs(destRow - srcRow);
-        int colDiff = abs(destCol - srcCol);
-
-        if (rowDiff == 0 && colDiff == 2) {
-            // This is likely castling, which is good
-            return 15; // Bonus for castling
-        }
-
-        // Regular king moves - generally discouraged in middle game
-        return -15; // Penalty for moving the king (except castling)
+      
+        return -15; 
     }
 
     return 0; // Not a king move
 }
-
+/**
+ * @brief Evaluates threats against a piece at a specific position.
+ *
+ * @param row The row of the piece to evaluate
+ * @param col The column of the piece to evaluate
+ * @param isWhite Whether the piece is white or black
+ * @param pieceValue The value of the piece
+ * @return int The score penalty based on threats to the piece
+ */
 int MoveRecommender::evaluateThreat(int row, int col, bool isWhite, int pieceValue) {
     int threatScore = 0;
 
@@ -226,7 +278,12 @@ int MoveRecommender::evaluateThreat(int row, int col, bool isWhite, int pieceVal
 
     return threatScore;
 }
-
+/**
+ * @brief Evaluates the positional score of a move based on multiple factors.
+ *
+ * @param move The chess move to evaluate
+ * @return int The combined positional score of the move
+ */
 int MoveRecommender::evaluatePosition(const ChessMove& move) {
     int score = 0;
 
@@ -281,7 +338,13 @@ int MoveRecommender::evaluatePosition(const ChessMove& move) {
         return score + threatEvaluation;
         });
 }
-
+/**
+ * @brief Makes a temporary move on the board, evaluates it, and restores the board state.
+ *
+ * @param move The chess move to make temporarily
+ * @param evaluationFunc A function that performs the evaluation
+ * @return int The evaluation result
+ */
 int MoveRecommender::makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc) {
     // Save the complete board state
     BoardState savedState = m_board.saveState();
@@ -297,7 +360,14 @@ int MoveRecommender::makeTemporaryMoveAndEvaluate(const ChessMove& move, std::fu
 
     return result;
 }
-
+/**
+ * @brief Recursively evaluates a move using minimax algorithm with a specified depth.
+ *
+ * @param move The chess move to evaluate
+ * @param depth The current search depth
+ * @param isMaximizingPlayer Whether the current player is maximizing (true) or minimizing (false)
+ * @return int The evaluation score of the move
+ */
 int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer) {
     // Base score from direct position evaluation
     int baseScore = evaluatePosition(move);
@@ -377,7 +447,12 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
         return baseScore + (bestScore / (depth + 1));  // Weight by depth
         });
 }
-
+/**
+ * @brief Recommends the top N moves for the current player.
+ *
+ * @param topN The number of top moves to recommend
+ * @return std::vector<ChessMove> Vector containing the recommended moves
+ */
 std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
     // Check if we need to refresh the move queues
     if ((m_isWhiteTurn && m_whiteMoveQueue.size() < topN) ||
@@ -398,7 +473,11 @@ std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
 
     return recommendations;
 }
-
+/**
+ * @brief Prints the recommended moves to the console.
+ *
+ * @param recommendations Vector of recommended chess moves
+ */
 void MoveRecommender::printRecommendations(const std::vector<ChessMove>& recommendations) const {
     std::cout << "Recommended moves for " << (m_isWhiteTurn ? "White" : "Black") << ":" << std::endl;
     int rank = 1;

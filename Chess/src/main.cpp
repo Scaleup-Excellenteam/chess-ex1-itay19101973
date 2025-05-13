@@ -1,5 +1,5 @@
 #include "Chess.h"
-#include "Board.h"
+#include "Board/Board.h"
 #include "MoveRecommender/MoveRecommender.h"
 
 int main()
