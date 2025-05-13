@@ -1,80 +1,58 @@
 #pragma once
 #include "Board.h"
+#include "ChessMove.h"
 #include "PriorityQueue.h"
-#include <string>
-#include <utility>
 #include <vector>
+#include <string>
+#include <functional>
+#include <algorithm>
+#include <functional>
 #include <iostream>
-#include <memory>
-
-// Structure to represent a chess move with its score
-struct ChessMove {
-    std::string sourcePos;
-    std::string destPos;
-    int score;
-    bool isWhite;  // Added to track which side this move is for
-
-    ChessMove(const std::string& source, const std::string& dest, bool forWhite = true, int moveScore = 0)
-        : sourcePos(source), destPos(dest), score(moveScore), isWhite(forWhite) {
-    }
-
-    // For displaying a move
-    std::string toString() const {
-        return sourcePos + destPos + " (Score: " + std::to_string(score) + ")";
-    }
-
-    // Equality operator to check if a move is the same
-    bool operator==(const ChessMove& other) const {
-        return sourcePos == other.sourcePos && destPos == other.destPos;
-    }
-};
-
-// Comparator for ChessMove objects based on their score
-struct ChessMoveComparator {
-    int operator()(const ChessMove& a, const ChessMove& b) const {
-        return a.score - b.score; // Now correctly prioritizes higher scores
-    }
-};
+#include <climits>
 
 class MoveRecommender {
-public:
-    MoveRecommender(Board& board, int maxDepth);
-
-    // Recommend top N moves for current player
-    std::vector<ChessMove> recommendMoves(int topN);
-
-    // Update cached moves when a move is played
-    void updateCachedMoves(const std::string& source, const std::string& dest);
-
-    // Print recommendations to console (for debugging)
-    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
-
 private:
     Board& m_board;
     int m_maxDepth;
     bool m_isWhiteTurn;
-
-    // Priority queues for caching move evaluations
     PriorityQueue<ChessMove, ChessMoveComparator> m_whiteMoveQueue;
     PriorityQueue<ChessMove, ChessMoveComparator> m_blackMoveQueue;
 
-    // Helper methods
+    // Convert board coordinates to chess notation
     std::string coordinatesToNotation(int row, int col) const;
+
+    // Check if a move is still valid on the current board
     bool isMoveStillValid(const ChessMove& move) const;
+
+    // Refresh the move queues for the current player
     void refreshMoveQueues(int topN);
 
-    // Evaluation methods
-    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
-    int evaluatePosition(const ChessMove& move);
-    int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
-
-    // Component evaluation methods
+    // Piece value helper
     int getPieceValue(char pieceSymbol) const;
+
+    // Evaluation helper methods
     int evaluateCapture(const ChessMove& move) const;
     int evaluateCheck(int moveCode) const;
+    int evaluateCenterControl(int row, int col) const;
+    int evaluateKingMove(const ChessMove& move) const;
     int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
+    int evaluatePosition(const ChessMove& move);
 
-    // New evaluation methods
-    int evaluateCenterControl(int row, int col) const;  // Evaluate center control
-    int evaluateKingMove(const ChessMove& move) const;  // Penalize king moves (except castling)
+    // Make a temporary move, evaluate, and restore board state
+    int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
+
+    // Evaluate a move using minimax approach to the specified depth
+    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
+
+public:
+    MoveRecommender(Board& board, int maxDepth = 2);
+
+    // Update cached moves after a move is played
+    void updateCachedMoves(const std::string& source, const std::string& dest);
+
+    // Get top N recommended moves for the current player
+    std::vector<ChessMove> recommendMoves(int topN = 3);
+
+    // Display recommendations
+    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
 };
