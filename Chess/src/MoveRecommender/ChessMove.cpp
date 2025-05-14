@@ -49,3 +49,8 @@ void ChessMove::setScore(int score) {
 std::string ChessMove::toString() const {
     return m_sourcePos + m_destPos + " (Score: " + std::to_string(m_score) + ")";
 }
+
+std::ostream& operator<<(std::ostream& os, const ChessMove& move) {
+    os << move.toString();
+    return os;
+}

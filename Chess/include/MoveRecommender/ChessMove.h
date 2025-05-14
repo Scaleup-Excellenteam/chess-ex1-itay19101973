@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <iostream>
 #include <string>
 
 class ChessMove {
@@ -42,3 +42,6 @@ struct ChessMoveComparator {
         return a.getScore() - b.getScore(); // Prioritizes higher scores
     }
 };
+
+// overloading <<
+std::ostream& operator<<(std::ostream& os, const ChessMove& move);

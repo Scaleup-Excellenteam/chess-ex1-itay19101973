@@ -1,3 +1,7 @@
+#include <iostream>
+#include <iterator>
+
+
 // Generic comparator structure
 template <typename T>
 struct DefaultComparator {
@@ -76,4 +80,17 @@ T PriorityQueue<T, Comparator>::poll() {
     T result = m_queue.front();
     m_queue.pop_front();
     return result;
+}
+
+template <typename T, typename Comparator>
+std::ostream& operator<<(std::ostream& os, const PriorityQueue<T, Comparator>& pq) {
+    const auto& list = pq.getList();
+    int count = 0;
+
+    for (auto it = list.begin(); it != list.end() && count < 3; ++it, ++count) {
+        if (count > 0) os << ", ";
+        os << *it;
+    }
+
+    return os;
 }

@@ -9,7 +9,7 @@
  */
 MoveRecommender::MoveRecommender(Board& board, int maxDepth)
     : m_board(board), m_maxDepth(maxDepth), m_isWhiteTurn(true),
-    m_whiteMoveQueue(5), m_blackMoveQueue(5) {  // Initialize queues with max size 5
+    m_moveQueue(5) {  // Initialize single queue with max size 5
 }
 //==========================================================================================
 /**
@@ -35,20 +35,15 @@ bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
     return (moveCode == 41 || moveCode == 42);
 }
 /**
- * @brief Refreshes the move priority queues by recalculating valid moves and their scores.
+ * @brief Refreshes the move priority queue by recalculating valid moves and their scores.
  *
  * @param topN The number of top moves to maintain in the queue
  */
-void MoveRecommender::refreshMoveQueues(int topN) {
-    // Clear the queue for the current player
-    if (m_isWhiteTurn) {
-        m_whiteMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
-    }
-    else {
-        m_blackMoveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
-    }
+void MoveRecommender::refreshMoveQueue(int topN) {
+    // Clear the queue and rebuild it for the current player
+    m_moveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
 
-    // Process moves directly without storing them all in a vector
+    
     for (int srcRow = 0; srcRow < 8; srcRow++) {
         for (int srcCol = 0; srcCol < 8; srcCol++) {
             // Check if there's a piece at this position
@@ -77,12 +72,7 @@ void MoveRecommender::refreshMoveQueues(int topN) {
 
                             // Add to queue if score is meaningful
                             if (score != 0) {
-                                if (m_isWhiteTurn) {
-                                    m_whiteMoveQueue.push(move);
-                                }
-                                else {
-                                    m_blackMoveQueue.push(move);
-                                }
+                                m_moveQueue.push(move);
                             }
                         }
                         catch (const std::exception& e) {
@@ -97,7 +87,7 @@ void MoveRecommender::refreshMoveQueues(int topN) {
 
     // Debug output to confirm scores are being calculated //TODO
     std::cout << "Refreshed move queue for " << (m_isWhiteTurn ? "White" : "Black") << std::endl;
-    const auto& currentQueue = m_isWhiteTurn ? m_whiteMoveQueue.getList() : m_blackMoveQueue.getList();
+    const auto& currentQueue = m_moveQueue.getList();
     for (const auto& move : currentQueue) {
         std::cout << "  " << move.toString() << std::endl;
     }
@@ -110,38 +100,18 @@ void MoveRecommender::refreshMoveQueues(int topN) {
  */
 void MoveRecommender::updateCachedMoves(const std::string& source, const std::string& dest) {
     ChessMove playedMove(source, dest, m_isWhiteTurn);
+
+    // Switch turns after move is played
     m_isWhiteTurn = !m_isWhiteTurn;
 
-    // Reinitialize queues with max size 5
-    PriorityQueue<ChessMove, ChessMoveComparator> newWhiteQueue(5);
-    PriorityQueue<ChessMove, ChessMoveComparator> newBlackQueue(5);
+    // Create a new queue with max size 5 for the new current player
+    PriorityQueue<ChessMove, ChessMoveComparator> newQueue(5);
 
-    // Revalidate and repopulate white moves
-    for (const ChessMove& move : m_whiteMoveQueue.getList()) {
-        if (move == playedMove) continue;
-        if (isMoveStillValid(move)) {
-            // Re-evaluate the move score since the board has changed
-            ChessMove updatedMove = move;
-            int score = evaluateMove(updatedMove, m_maxDepth, m_isWhiteTurn);
-            updatedMove.setScore(score);
-            newWhiteQueue.push(updatedMove);
-        }
-    }
+    // Clear the old queue - we'll calculate fresh moves for the new current player
+    m_moveQueue = std::move(newQueue);
 
-    // Revalidate and repopulate black moves
-    for (const ChessMove& move : m_blackMoveQueue.getList()) {
-        if (move == playedMove) continue;
-        if (isMoveStillValid(move)) {
-            // Re-evaluate the move score since the board has changed
-            ChessMove updatedMove = move;
-            int score = evaluateMove(updatedMove, m_maxDepth, !m_isWhiteTurn);
-            updatedMove.setScore(score);
-            newBlackQueue.push(updatedMove);
-        }
-    }
-
-    m_whiteMoveQueue = std::move(newWhiteQueue);
-    m_blackMoveQueue = std::move(newBlackQueue);
+    // The next time recommendMoves is called, it will refresh the queue
+    // for the current player (which has now switched)
 }
 /**
  * @brief Gets the numerical value of a chess piece based on its symbol.
@@ -214,8 +184,8 @@ int MoveRecommender::evaluateKingMove(const ChessMove& move) const {
 
     // Check if it's a king move
     if (piece && tolower(piece->getSymbol()) == 'k') {
-      
-        return -15; 
+
+        return -15;
     }
 
     return 0; // Not a king move
@@ -436,23 +406,21 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
  * @return std::vector<ChessMove> Vector containing the recommended moves
  */
 std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
-    // Check if we need to refresh the move queues
-    if ((m_isWhiteTurn && m_whiteMoveQueue.size() < topN) ||
-        (!m_isWhiteTurn && m_blackMoveQueue.size() < topN)) {
-        refreshMoveQueues(topN);
+    // Check if we need to refresh the move queue
+    if (m_moveQueue.size() < topN) {
+        refreshMoveQueue(topN);
     }
 
-    // Extract top N moves from the appropriate queue
+    // Extract top N moves from the queue
     std::vector<ChessMove> recommendations;
 
     // Create a temporary queue to avoid destroying the original queue
-    PriorityQueue<ChessMove, ChessMoveComparator> tempQueue =
-        m_isWhiteTurn ? m_whiteMoveQueue : m_blackMoveQueue;
+    PriorityQueue<ChessMove, ChessMoveComparator> tempQueue = m_moveQueue;
 
     while (!tempQueue.isEmpty() && recommendations.size() < topN) {
         recommendations.push_back(tempQueue.poll());
     }
-
+    std::cout << this->m_moveQueue;
     return recommendations;
 }
 /**
