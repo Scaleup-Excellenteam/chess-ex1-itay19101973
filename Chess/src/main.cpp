@@ -7,9 +7,9 @@ int main()
     string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
     Chess a(board);
     Board chessBoard(board);
-    MoveRecommender recommender(chessBoard, 2);
+    MoveRecommender recommender(chessBoard, 3);
     // Get and print the top 3 recommended moves before each turn
-    std::vector<ChessMove> recommendations = recommender.recommendMoves(3);
+    std::vector<ChessMove> recommendations = recommender.recommendMoves();
     recommender.printRecommendations(recommendations);
     int codeResponse = 0;
     string res = a.getInput();
@@ -40,7 +40,7 @@ int main()
         }
 
         a.setCodeResponse(codeResponse);
-        recommendations = recommender.recommendMoves(3);
+        recommendations = recommender.recommendMoves();
         recommender.printRecommendations(recommendations);
         res = a.getInput();
     }

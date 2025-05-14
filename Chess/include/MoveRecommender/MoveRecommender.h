@@ -22,7 +22,7 @@ private:
     // Helper functions for move evaluation
     std::string coordinatesToNotation(int row, int col) const;
     bool isMoveStillValid(const ChessMove& move) const;
-    void refreshMoveQueue(int topN);
+    void refreshMoveQueue();
     int getPieceValue(char pieceSymbol) const;
     int evaluateCheck(int moveCode) const;
     int evaluateCenterControl(int row, int col) const;
@@ -37,7 +37,7 @@ public:
     MoveRecommender(Board& board, int maxDepth);
 
     // Primary public methods
-    std::vector<ChessMove> recommendMoves(int topN);
+    std::vector<ChessMove> recommendMoves();
     void printRecommendations(const std::vector<ChessMove>& recommendations) const;
 };
 

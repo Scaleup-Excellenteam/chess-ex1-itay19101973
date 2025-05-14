@@ -39,7 +39,7 @@ bool MoveRecommender::isMoveStillValid(const ChessMove& move) const {
  *
  * @param topN The number of top moves to maintain in the queue
  */
-void MoveRecommender::refreshMoveQueue(int topN) {
+void MoveRecommender::refreshMoveQueue() {
     // Clear the queue and rebuild it for the current player
     m_moveQueue = PriorityQueue<ChessMove, ChessMoveComparator>(5);  // Max size 5
 
@@ -384,10 +384,10 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
  * @param topN The number of top moves to recommend
  * @return std::vector<ChessMove> Vector containing the recommended moves
  */
-std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
+std::vector<ChessMove> MoveRecommender::recommendMoves() {
     
     
-    refreshMoveQueue(topN);
+    refreshMoveQueue();
     
 
     // Extract top N moves from the queue
@@ -396,9 +396,7 @@ std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
     // Create a temporary queue to avoid destroying the original queue
     PriorityQueue<ChessMove, ChessMoveComparator> tempQueue = m_moveQueue;
 
-    while (!tempQueue.isEmpty() && recommendations.size() < topN) {
-        recommendations.push_back(tempQueue.poll());
-    }
+    
     std::cout << this->m_moveQueue;
 
     this->m_isWhiteTurn = !this->m_isWhiteTurn;
