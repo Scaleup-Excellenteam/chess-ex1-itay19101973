@@ -93,27 +93,6 @@ void MoveRecommender::refreshMoveQueue(int topN) {
     }
 }
 /**
- * @brief Updates cached moves after a move has been played on the board.
- *
- * @param source The source position in chess notation
- * @param dest The destination position in chess notation
- */
-void MoveRecommender::updateCachedMoves(const std::string& source, const std::string& dest) {
-    ChessMove playedMove(source, dest, m_isWhiteTurn);
-
-    // Switch turns after move is played
-    m_isWhiteTurn = !m_isWhiteTurn;
-
-    // Create a new queue with max size 5 for the new current player
-    PriorityQueue<ChessMove, ChessMoveComparator> newQueue(5);
-
-    // Clear the old queue - we'll calculate fresh moves for the new current player
-    m_moveQueue = std::move(newQueue);
-
-    // The next time recommendMoves is called, it will refresh the queue
-    // for the current player (which has now switched)
-}
-/**
  * @brief Gets the numerical value of a chess piece based on its symbol.
  *
  * @param pieceSymbol The character symbol representing the piece
@@ -406,10 +385,10 @@ int MoveRecommender::evaluateMove(const ChessMove& move, int depth, bool isMaxim
  * @return std::vector<ChessMove> Vector containing the recommended moves
  */
 std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
-    // Check if we need to refresh the move queue
-    if (m_moveQueue.size() < topN) {
-        refreshMoveQueue(topN);
-    }
+    
+    
+    refreshMoveQueue(topN);
+    
 
     // Extract top N moves from the queue
     std::vector<ChessMove> recommendations;
@@ -421,6 +400,9 @@ std::vector<ChessMove> MoveRecommender::recommendMoves(int topN) {
         recommendations.push_back(tempQueue.poll());
     }
     std::cout << this->m_moveQueue;
+
+    this->m_isWhiteTurn = !this->m_isWhiteTurn;
+
     return recommendations;
 }
 /**

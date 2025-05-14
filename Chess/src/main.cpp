@@ -37,8 +37,6 @@ int main()
         if (codeResponse == 41 || codeResponse == 42) {
             chessBoard.makeMove(source, dest);
 
-            // Update the cached move queues with the new board state
-            recommender.updateCachedMoves(source, dest);
         }
 
         a.setCodeResponse(codeResponse);

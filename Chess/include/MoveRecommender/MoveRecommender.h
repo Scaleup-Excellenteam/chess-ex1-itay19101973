@@ -38,7 +38,6 @@ public:
 
     // Primary public methods
     std::vector<ChessMove> recommendMoves(int topN);
-    void updateCachedMoves(const std::string& source, const std::string& dest);
     void printRecommendations(const std::vector<ChessMove>& recommendations) const;
 };
 
