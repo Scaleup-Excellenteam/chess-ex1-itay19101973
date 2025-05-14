@@ -161,24 +161,6 @@ int MoveRecommender::getPieceValue(char pieceSymbol) const {
     }
 }
 /**
- * @brief Evaluates the score for a capture move.
- *
- * @param move The chess move to evaluate
- * @return int The score of the capture (0 if not a capture)
- */
-int MoveRecommender::evaluateCapture(const ChessMove& move) const {
-    auto [destRow, destCol] = m_board.notationToCoordinates(move.getDestPos());
-    std::shared_ptr<Piece> destPiece = m_board.getPieceAt(destRow, destCol);
-
-    if (destPiece) {
-        // Piece value approximation with medium bonus for captures
-        char capturedSymbol = destPiece->getSymbol();
-        return getPieceValue(capturedSymbol) * 20; // Increased multiplier for medium bonus
-    }
-
-    return 0; // No capture
-}
-/**
  * @brief Evaluates the score for a move that puts the opponent in check.
  *
  * @param moveCode The validation code returned by the board's validateMove method
