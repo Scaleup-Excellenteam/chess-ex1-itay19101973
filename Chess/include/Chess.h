@@ -5,7 +5,7 @@
 #endif
 
 #include <string>
-
+#include <functional>
 using std::cout;
 using std::cin; 
 using std::endl;
@@ -38,6 +38,6 @@ public:
 	Chess(const string& start = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr");
 	Chess(const Chess&)=delete;
 	Chess& operator=(const Chess&) = delete;
-	string getInput();
+	string getInput(std::function<void()> printFunc);
 	void setCodeResponse(int codeResponse);
 };

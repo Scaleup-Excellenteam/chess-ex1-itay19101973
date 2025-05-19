@@ -397,7 +397,7 @@ std::vector<ChessMove> MoveRecommender::recommendMoves() {
     PriorityQueue<ChessMove, ChessMoveComparator> tempQueue = m_moveQueue;
 
     
-    std::cout << this->m_moveQueue;
+    printRecommendations();
 
     this->m_isWhiteTurn = !this->m_isWhiteTurn;
 
@@ -408,11 +408,6 @@ std::vector<ChessMove> MoveRecommender::recommendMoves() {
  *
  * @param recommendations Vector of recommended chess moves
  */
-void MoveRecommender::printRecommendations(const std::vector<ChessMove>& recommendations) const {
-    std::cout << "Recommended moves for " << (m_isWhiteTurn ? "White" : "Black") << ":" << std::endl;
-    int rank = 1;
-    for (const auto& move : recommendations) {
-        std::cout << rank << ". " << move.toString() << std::endl;
-        rank++;
-    }
+void MoveRecommender::printRecommendations() const {
+    std::cout << this->m_moveQueue;
 }

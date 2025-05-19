@@ -88,9 +88,10 @@ std::ostream& operator<<(std::ostream& os, const PriorityQueue<T, Comparator>& p
     int count = 0;
 
     for (auto it = list.begin(); it != list.end() && count < 3; ++it, ++count) {
-        if (count > 0) os << ", ";
         os << *it;
+        os << '\n';
     }
+    
 
     return os;
 }

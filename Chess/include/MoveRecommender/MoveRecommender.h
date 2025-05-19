@@ -38,7 +38,7 @@ public:
 
     // Primary public methods
     std::vector<ChessMove> recommendMoves();
-    void printRecommendations(const std::vector<ChessMove>& recommendations) const;
+    void printRecommendations() const;
 };
 
 #endif // MOVERECOMMENDER_H

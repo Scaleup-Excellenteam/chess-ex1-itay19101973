@@ -7,12 +7,13 @@ int main()
     string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
     Chess a(board);
     Board chessBoard(board);
-    MoveRecommender recommender(chessBoard, 3);
+    MoveRecommender recommender(chessBoard, 2);
     // Get and print the top 3 recommended moves before each turn
     std::vector<ChessMove> recommendations = recommender.recommendMoves();
-    recommender.printRecommendations(recommendations);
+    recommender.printRecommendations();
     int codeResponse = 0;
-    string res = a.getInput();
+    auto printFunc = [&recommender]() { recommender.printRecommendations(); };
+    string res = a.getInput(printFunc);
     while (res != "exit")
     {
         
@@ -41,8 +42,8 @@ int main()
 
         a.setCodeResponse(codeResponse);
         recommendations = recommender.recommendMoves();
-        recommender.printRecommendations(recommendations);
-        res = a.getInput();
+        recommender.printRecommendations();
+        res = a.getInput(printFunc);
     }
 
     cout << endl << "Exiting " << endl;

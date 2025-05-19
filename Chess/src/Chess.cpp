@@ -178,7 +178,7 @@ void Chess::show() const
 // clear screen and print the board and the relevant msg 
 void Chess::displayBoard() const
 {
-	
+	clear();
 	show();
 	cout << m_msg<< m_errorMsg;
 	
@@ -281,8 +281,9 @@ Chess::Chess(const string& start)
 }
 
 // get the source and destination 
-string Chess::getInput()
+string Chess::getInput(std::function<void()> printFunc)
 {
+	static bool isWhiteTurn = true;
 	static bool isFirst = true;
 
 	if (isFirst)
@@ -291,6 +292,13 @@ string Chess::getInput()
 		doTurn(); 
 
 	displayBoard();
+	if (isWhiteTurn) {
+		cout << "Recommended moves for white:" << '\n';
+	}
+	else {
+		cout << "Recommended moves for black:" << '\n';
+	}
+	printFunc();
 	showAskInput();
 
 	cin >> m_input;
@@ -316,7 +324,7 @@ string Chess::getInput()
 		if (('A' <= m_input[2]) && (m_input[2] <= 'H'))
 			m_input[2] = (m_input[2] - 'A' + 'a');
 	}
-
+	isWhiteTurn = !isWhiteTurn;
 	return m_input;
 }
 
