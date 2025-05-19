@@ -8,35 +8,43 @@
 #include "Board/Board.h"
 #include "ChessMove.h"
 #include "PriorityQueue.h"
+#include "ChessUtils.h"
 
 /**
- * @brief Class for recommending chess moves using board evaluation
+ * @brief Simplified chess move recommender using minimax algorithm
  */
 class MoveRecommender {
 private:
-    Board& m_board;                       // Reference to the chess board
-    int m_maxDepth;                       // Maximum search depth for move evaluation
-    bool m_isWhiteTurn;                   // Flag to track whose turn it is
-    PriorityQueue<ChessMove, ChessMoveComparator> m_moveQueue;  // Single priority queue for moves
+    Board& m_board;
+    int m_maxDepth;
+    bool m_isWhiteTurn;
+    PriorityQueue<ChessMove, ChessMoveComparator> m_moveQueue;
 
-    // Helper functions for move evaluation
+    // Core helper functions
     std::string coordinatesToNotation(int row, int col) const;
     bool isMoveStillValid(const ChessMove& move) const;
-    void refreshMoveQueue();
     int getPieceValue(char pieceSymbol) const;
-    int evaluateCheck(int moveCode) const;
-    int evaluateCenterControl(int row, int col) const;
-    int evaluateKingMove(const ChessMove& move) const;
-    int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
+
+    // Move generation and evaluation
+    void refreshMoveQueue();
+    void evaluateMovesForPiece(int srcRow, int srcCol);
+
+    // Simplified minimax algorithm
+    int minimax(const ChessMove& move, int depth, bool isMaximizing);
+
+    // Position evaluation functions
     int evaluatePosition(const ChessMove& move);
+    int evaluateCenterControl(int row, int col) const;
+    int evaluateThreat(int row, int col, bool isWhite, int pieceValue);
+
+    // Utility function for temporary moves
     int makeTemporaryMoveAndEvaluate(const ChessMove& move, std::function<int()> evaluationFunc);
-    int evaluateMove(const ChessMove& move, int depth, bool isMaximizingPlayer);
 
 public:
     // Constructor
     MoveRecommender(Board& board, int maxDepth);
 
-    // Primary public methods
+    // Public interface
     std::vector<ChessMove> recommendMoves();
     void printRecommendations() const;
 };
