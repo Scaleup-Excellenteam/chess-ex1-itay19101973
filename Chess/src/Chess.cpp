@@ -283,7 +283,7 @@ Chess::Chess(const string& start)
 // get the source and destination 
 string Chess::getInput(std::function<void()> printFunc)
 {
-	static bool isWhiteTurn = true;
+	
 	static bool isFirst = true;
 
 	if (isFirst)
@@ -292,12 +292,9 @@ string Chess::getInput(std::function<void()> printFunc)
 		doTurn(); 
 
 	displayBoard();
-	if (isWhiteTurn) {
-		cout << "Recommended moves for white:" << '\n';
-	}
-	else {
-		cout << "Recommended moves for black:" << '\n';
-	}
+	
+	cout << "Recommended moves:" << '\n';
+
 	printFunc();
 	showAskInput();
 
@@ -324,7 +321,7 @@ string Chess::getInput(std::function<void()> printFunc)
 		if (('A' <= m_input[2]) && (m_input[2] <= 'H'))
 			m_input[2] = (m_input[2] - 'A' + 'a');
 	}
-	isWhiteTurn = !isWhiteTurn;
+	
 	return m_input;
 }
 
