@@ -396,8 +396,7 @@ std::vector<ChessMove> MoveRecommender::recommendMoves() {
     // Create a temporary queue to avoid destroying the original queue
     PriorityQueue<ChessMove, ChessMoveComparator> tempQueue = m_moveQueue;
 
-    
-    printRecommendations();
+   
 
     this->m_isWhiteTurn = !this->m_isWhiteTurn;
 
