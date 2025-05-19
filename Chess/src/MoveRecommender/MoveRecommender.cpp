@@ -282,19 +282,12 @@ int MoveRecommender::makeTemporaryMoveAndEvaluate(const ChessMove& move, std::fu
 /**
  * @brief Main function to get move recommendations.
  */
-std::vector<ChessMove> MoveRecommender::recommendMoves() {
+void MoveRecommender::recommendMoves() {
     refreshMoveQueue();
 
-    std::vector<ChessMove> recommendations;
-    PriorityQueue<ChessMove, ChessMoveComparator> tempQueue = m_moveQueue;
 
-    // Extract moves from queue (they're already sorted by score)
-    while (!tempQueue.isEmpty()) {
-        recommendations.push_back(tempQueue.poll());
-    }
 
     m_isWhiteTurn = !m_isWhiteTurn;
-    return recommendations;
 }
 
 /**

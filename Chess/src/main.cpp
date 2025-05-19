@@ -9,8 +9,7 @@ int main()
     Board chessBoard(board);
     MoveRecommender recommender(chessBoard, 2);
     // Get and print the top 3 recommended moves before each turn
-    std::vector<ChessMove> recommendations = recommender.recommendMoves();
-    recommender.printRecommendations();
+    recommender.recommendMoves();
     int codeResponse = 0;
     auto printFunc = [&recommender]() { recommender.printRecommendations(); };
     string res = a.getInput(printFunc);
@@ -37,12 +36,11 @@ int main()
 
         if (codeResponse == 41 || codeResponse == 42) {
             chessBoard.makeMove(source, dest);
+            recommender.recommendMoves();
 
         }
 
         a.setCodeResponse(codeResponse);
-        recommendations = recommender.recommendMoves();
-        recommender.printRecommendations();
         res = a.getInput(printFunc);
     }
 

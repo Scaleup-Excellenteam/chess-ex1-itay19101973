@@ -45,7 +45,7 @@ public:
     MoveRecommender(Board& board, int maxDepth);
 
     // Public interface
-    std::vector<ChessMove> recommendMoves();
+    void recommendMoves();
     void printRecommendations() const;
 };
 
