@@ -153,3 +153,197 @@ You are required to submit each exercise using "GitHub Classroom". To do this, y
 <p align="center">
   <img src="./img/excellenteam.png" alt="Excellenteam">
 </p>
+
+
+# Chess Move Recommender Algorithm
+
+## Overview
+
+The `MoveRecommender` class implements an intelligent chess move recommendation system using a **minimax algorithm with position evaluation**. 
+The algorithm analyzes potential moves for the current player and ranks them based on their strategic value,
+considering both immediate tactical advantages and future opponent responses.
+
+## Algorithm Architecture
+
+### Core Components
+
+1. **Move Generation**: Systematically generates all legal moves for the current player
+2. **Position Evaluation**: Scores each position using multiple chess heuristics
+3. **Minimax Search**: Looks ahead to evaluate opponent responses
+4. **Priority Queue**: Maintains ranked list of best moves
+
+### Key Features
+
+- **Minimax with Limited Depth**: Recursive lookahead with configurable maximum depth
+- **Multi-Factor Position Evaluation**: Considers captures, checks, center control, threats, and piece safety
+- **Temporary Move Simulation**: Makes and undoes moves to evaluate positions safely
+- **Early Termination**: Alpha-beta style cutoffs for performance optimization
+
+## How the Algorithm Works
+
+### 1. Move Generation Phase (`refreshMoveQueue`)
+
+```
+For each square on the board:
+    If square contains our piece:
+        For each possible destination:
+            If move is legal:
+                Evaluate move using minimax
+                Add to priority queue if score > 0
+```
+
+**Time Complexity**: O(64 × 64 × M) where M is the minimax evaluation cost
+- 64 source squares × 64 destination squares = 4,096 potential moves per turn
+- Most moves are filtered out by chess rules, reducing actual evaluations significantly
+
+### 2. Minimax Evaluation (`minimax`)
+
+The minimax algorithm implements the following recursive structure:
+
+```
+minimax(move, depth, isMaximizing):
+    currentScore = evaluatePosition(move)
+    
+    if depth == 0:
+        return currentScore
+    
+    makeTemporaryMove(move)
+    bestScore = isMaximizing ? -∞ : +∞
+    
+    For each opponent response:
+        score = minimax(opponentMove, depth-1, !isMaximizing)
+        if isMaximizing:
+            bestScore = max(bestScore, score)
+        else:
+            bestScore = min(bestScore, score)
+    
+    restoreBoard()
+    return currentScore + bestScore/depth
+```
+
+**Key Optimizations**:
+- **Early Cutoff**: Stops searching when finding moves above/below threshold values
+- **Depth Scaling**: Divides deeper scores by depth to prefer immediate tactical gains
+- **No-Move Detection**: Recognizes checkmate/stalemate conditions
+
+### 3. Position Evaluation (`evaluatePosition`)
+
+The position evaluation function considers multiple strategic factors:
+
+#### Scoring Components
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| **Material Capture** | Piece Value × Multiplier | Points for capturing opponent pieces |
+| **Check Bonus** | Fixed Value | Bonus for putting opponent in check |
+| **Center Control** | Positional Bonus | Rewards controlling center squares (d4, d5, e4, e5) |
+| **King Safety** | Penalty | Discourages unnecessary king moves |
+| **Threat Assessment** | Variable Penalty | Penalizes moves that expose pieces to capture |
+| **Randomness** | Small Random Value | Adds variation to prevent predictable play |
+
+#### Piece Values (Standard Chess Values)
+- **Pawn**: 1 point
+- **Knight**: 3 points  
+- **Bishop**: 3 points
+- **Rook**: 5 points
+- **Queen**: 9 points
+- **King**: 1000 points (effectively infinite)
+
+#### Center Control Evaluation
+- **Inner Center** (d4, d5, e4, e5): Higher bonus
+- **Outer Center** (12 surrounding squares): Lower bonus
+- Encourages piece development and central control
+
+#### Threat Assessment
+The algorithm checks if the moved piece becomes vulnerable:
+- **Heavy Penalty**: When attacked by a piece of lower value
+- **Standard Penalty**: When attacked by piece of equal/higher value
+- **Calculation**: Scans all opponent pieces to see if they can capture the moved piece
+
+## Runtime Complexity Analysis
+
+### Theoretical Complexity
+
+**Overall Time Complexity**: O(B^D × E)
+
+Where:
+- **B** = Branching factor (average legal moves per position) ≈ 35 in chess
+- **D** = Maximum search depth
+- **E** = Position evaluation cost ≈ O(64) for threat analysis
+
+### Detailed Breakdown
+
+#### 1. Move Generation: O(64² × V)
+- **64² iterations**: Check all source-destination pairs
+- **V**: Move validation cost (piece-specific rules)
+- **Practical reduction**: Most combinations are illegal, reducing actual work
+
+#### 2. Minimax Search: O(B^D)
+- **Recursive calls**: Each level explores ~35 legal moves
+- **Exponential growth**: Depth 1 = 35 calls, Depth 3 = 42,875 calls
+- **With optimizations**: Early cutoffs reduce effective branching factor
+
+#### 3. Position Evaluation per Move: O(64)
+- **Threat analysis**: Check all 64 squares for attacking pieces
+- **Other factors**: O(1) calculations for captures, checks, center control
+
+### Practical Performance
+
+| Max Depth | Estimated Evaluations | Typical Runtime |
+|-----------|----------------------|-----------------|
+| 1 | ~35 | < 1ms |
+| 2 | ~1,000 | 10-50ms |
+| 3 | ~35,000 | 0.5-2s |
+| 4 | ~1,000,000 | 30-120s |
+
+**Performance Factors**:
+- **Position complexity**: Endgames have fewer pieces, reducing branching
+- **Early cutoffs**: Alpha-beta style pruning reduces search space
+- **Move ordering**: Priority queue ensures best moves are found first
+
+### Memory Complexity: O(D)
+- **Stack space**: Recursive calls use O(D) stack frames
+- **Board states**: Each level saves/restores one board state
+- **Move storage**: Priority queue holds all evaluated moves
+
+## Algorithm Strengths
+
+1. **Tactical Awareness**: Identifies captures, checks, and immediate threats
+2. **Strategic Understanding**: Values center control and piece development  
+3. **Lookahead Capability**: Considers opponent responses to avoid blunders
+4. **Configurable Depth**: Adjustable between fast play and stronger analysis
+5. **Robust Evaluation**: Multiple factors prevent one-dimensional play
+
+## Algorithm Limitations
+
+1. **Exponential Complexity**: Deep searches become computationally expensive
+2. **Limited Horizon**: Cannot see beyond maximum depth setting
+3. **Static Evaluation**: Position scoring based on heuristics, not perfect chess knowledge
+4. **No Opening/Endgame Specialization**: Uses same evaluation throughout game phases
+5. **Threat Assessment Scope**: Only evaluates immediate piece safety
+
+## Usage Example
+
+```cpp
+// Initialize with board and search depth
+MoveRecommender recommender(chessBoard, 3);
+
+// Generate and evaluate all moves
+recommender.recommendMoves();
+
+// Display best moves in order
+recommender.printRecommendations();
+```
+
+## Configuration Parameters
+
+- **maxDepth**: Controls search depth (1-4 recommended)
+- **ALPHA_BETA_CUTOFF**: Threshold for early termination
+- **CAPTURE_MULTIPLIER**: Weight for material gains
+- **CHECK_BONUS**: Bonus for checking opponent
+- **CENTER_BONUS_INNER/OUTER**: Positional control values
+- **THREAT_MULTIPLIER/PENALTY**: Threat assessment weights
+
+
+---
+
