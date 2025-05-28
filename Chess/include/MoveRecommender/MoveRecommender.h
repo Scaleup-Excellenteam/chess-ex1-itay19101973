@@ -1,5 +1,4 @@
-#ifndef MOVERECOMMENDER_H
-#define MOVERECOMMENDER_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -49,4 +48,4 @@ public:
     void printRecommendations() const;
 };
 
-#endif // MOVERECOMMENDER_H
+ // MOVERECOMMENDER_H

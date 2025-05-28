@@ -2,6 +2,12 @@
 <tr style="border: none">
 <td style="border: none">
 
+# how to run - (visual studio)
+- open the folder from visual syudio
+- select the startup item to be - Chess.exe
+- build and run the code
+
+
 # THE Chess Template Repository
 
 </td>

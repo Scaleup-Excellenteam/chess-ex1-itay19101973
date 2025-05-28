@@ -1,6 +1,5 @@
-#ifndef CHESSUTILS_H
-#define CHESSUTILS_H
 
+#pragma once
 namespace ChessUtils {
     // Board dimensions
     const int BOARD_SIZE = 8;
@@ -62,5 +61,3 @@ namespace ChessUtils {
         KING = 'k'
     };
 }
-
-#endif // CHESSUTILS_H
