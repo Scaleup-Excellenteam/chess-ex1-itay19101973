@@ -14,4 +14,4 @@
 							  "MoveRecommender/MoveRecommender.cpp" 
 							  "../include/MoveRecommender/ChessMove.h" 
 							  "MoveRecommender/ChessMove.cpp" 
-							  "../include/Board/BoardState.h" "../include/MoveRecommender/ChessUtils.h")
+							  "../include/Board/BoardState.h" "../include/MoveRecommender/ChessUtils.h" "../include/Exceptions/EmptyQueueException.h" "Exceptions/EmptyQueueException.cpp" "Exceptions/MoveScoreDontFit.cpp")

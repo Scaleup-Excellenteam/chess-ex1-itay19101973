@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iterator>
+#include "Exceptions/EmptyQueueException.h"
+#include "Exceptions/MoveScoreDontFit.h"
 
 
 // Generic comparator structure
@@ -45,35 +47,41 @@ public:
 
 template <typename T, typename Comparator>
 void PriorityQueue<T, Comparator>::push(const T& element) {
-    // If max size is enforced and already reached
-    if (m_maxSize > 0 && m_queue.size() == m_maxSize) {
-        // The queue is sorted, so the last element has the lowest priority
-        auto lowestIt = std::prev(m_queue.end());
+    try {
+        // If max size is enforced and already reached
+        if (m_maxSize > 0 && m_queue.size() == m_maxSize) {
+            // The queue is sorted, so the last element has the lowest priority
+            auto lowestIt = std::prev(m_queue.end());
 
-        // If the new element has lower or equal priority than the lowest one, skip insertion
-        if (m_comparator(element, *lowestIt) <= 0) {
-            return;
+            // If the new element has lower or equal priority than the lowest one, skip insertion
+            if (m_comparator(element, *lowestIt) <= 0) {
+                throw MoveScoreDontFit();
+            }
+
+            // Else, remove the lowest element to make space
+            m_queue.erase(lowestIt);
         }
 
-        // Else, remove the lowest element to make space
-        m_queue.erase(lowestIt);
-    }
+        // Find correct insertion point to keep queue sorted by priority
+        auto it = m_queue.begin();
+        while (it != m_queue.end() && m_comparator(*it, element) >= 0) {
+            ++it;
+        }
 
-    // Find correct insertion point to keep queue sorted by priority
-    auto it = m_queue.begin();
-    while (it != m_queue.end() && m_comparator(*it, element) >= 0) {
-        ++it;
+        // Insert element in the correct position
+        m_queue.insert(it, element);
     }
-
-    // Insert element in the correct position
-    m_queue.insert(it, element);
+    catch( const MoveScoreDontFit& e){
+        return;
+    }
+    
 }
 
 
 template <typename T, typename Comparator>
 T PriorityQueue<T, Comparator>::poll() {
     if (isEmpty()) {
-       // throw EmptyQueueException(); TODO
+        throw EmptyQueueException(); 
     }
 
     // The front element is always the highest priority one
